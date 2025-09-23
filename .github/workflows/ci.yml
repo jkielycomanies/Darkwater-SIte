@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: darkwater-pos/package-lock.json
+    
+    - name: Install dependencies
+      run: npm ci
+      working-directory: ./darkwater-pos
+    
+    - name: Run linting
+      run: npm run lint
+      working-directory: ./darkwater-pos
+    
+    - name: Run type checking
+      run: npm run type-check
+      working-directory: ./darkwater-pos
+    
+    - name: Build application
+      run: npm run build
+      working-directory: ./darkwater-pos
+      env:
+        NEXTAUTH_URL: http://localhost:3000
+        NEXTAUTH_SECRET: test-secret
+        MONGODB_URI: mongodb://localhost:27017/test
+        EMAIL_FROM: test@example.com

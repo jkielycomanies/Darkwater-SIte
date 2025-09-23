@@ -1,0 +1,36 @@
+{
+  "buildCommand": "cd darkwater-pos && npm run build",
+  "outputDirectory": "darkwater-pos/.next",
+  "framework": "nextjs",
+  "installCommand": "cd darkwater-pos && npm install",
+  "functions": {
+    "darkwater-pos/src/app/api/**/*": {
+      "maxDuration": 60
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/companies/(.*)/inventory/bikes/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/integrations/email/gmail/sync",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}
