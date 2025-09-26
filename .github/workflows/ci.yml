@@ -17,17 +17,44 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Print workspace tree (top level)
+      run: |
+        pwd
+        ls -la
+
+    - name: Ensure project directory exists
+      run: |
+        if [ ! -d "darkwater-pos" ]; then
+          echo "ERROR: darkwater-pos directory not found at repo root" >&2
+          exit 2
+        fi
+        ls -la darkwater-pos
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-    
-    - name: Install dependencies
-      run: npm ci
+
+    - name: Print versions
+      run: |
+        node -v
+        npm -v
+
+    - name: Verify lock and package files
+      run: |
+        test -f darkwater-pos/package.json || (echo "package.json missing" && exit 3)
+        test -f darkwater-pos/package-lock.json || echo "WARN: package-lock.json missing (npm ci may fail)"
+        cat darkwater-pos/package.json | head -n 50
+
+    - name: Install dependencies (verbose)
+      run: npm ci --verbose
       working-directory: ./darkwater-pos
-    
-    - name: Build application (skip lint/type-check for debugging)
-      run: npm run build
+
+    - name: Print workspace disk usage
+      run: du -sh ./* || true
+
+    - name: Build application (verbose)
+      run: npm run build --verbose
       working-directory: ./darkwater-pos
       env:
         NEXTAUTH_URL: http://localhost:3000
@@ -35,4 +62,13 @@ jobs:
         MONGODB_URI: mongodb://localhost:27017/test
         EMAIL_FROM: test@example.com
         NODE_ENV: production
+
+    - name: List .next output
+      if: always()
+      run: |
+        if [ -d darkwater-pos/.next ]; then
+          ls -la darkwater-pos/.next
+        else
+          echo ".next not found"
+        fi
 
