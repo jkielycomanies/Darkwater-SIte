@@ -4,7 +4,7 @@
   "framework": "nextjs",
   "installCommand": "cd darkwater-pos && npm install",
   "functions": {
-    "darkwater-pos/src/app/api/**/*": {
+    "src/app/api/**/*": {
       "maxDuration": 60
     }
   },
