@@ -39,7 +39,8 @@ export default function DashboardPage() {
     Listed: 0
   });
   const [soldThisMonth, setSoldThisMonth] = useState<number>(0);
-  const [lastSixMonths, setLastSixMonths] = useState<Array<{ label: string; revenue: number; cost: number; profit: number }>>([]);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<Array<{ label: string; amount: number; month: string }>>([]);
+  const [monthlyProfit, setMonthlyProfit] = useState<Array<{ label: string; amount: number; month: string }>>([]);
 
   const formatCurrencyShort = (amount: number) => {
     const abs = Math.abs(amount);
@@ -153,30 +154,37 @@ export default function DashboardPage() {
           return parts + services + transport + acquisition;
         };
 
-        const monthly = months.map(({ label, start, end }) => {
+        // Calculate monthly revenue data (current month first)
+        const revenueData = months.reverse().map(({ label, start, end }) => {
           const soldInMonth = (data.bikes || []).filter((b: any) => {
             const statusStr = String(b.status || '').trim().toLowerCase();
-            const isSold = statusStr === 'sold';
-            if (!isSold) return false; // must be marked as sold
-            if (!b.dateSold) return false; // require an explicit sold date for accuracy
+            if (statusStr !== 'sold' || !b.dateSold) return false;
             const d = new Date(b.dateSold);
-            if (isNaN(d.getTime())) return false;
-            return d >= start && d <= end;
+            return !isNaN(d.getTime()) && d >= start && d <= end;
           });
           
-          // Revenue: sum actual sale values (KEEP THIS - user didn't ask to change revenue)
-          const revenue = soldInMonth.reduce((s: number, b: any) => s + toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0), 0);
+          const amount = soldInMonth.reduce((s: number, b: any) => 
+            s + toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0), 0);
           
-          // Profit: Use ONLY the pre-calculated actualProfit field from database  
-          const profit = soldInMonth.reduce((s: number, b: any) => {
-            const actualProfit = toNumber(b.actualProfit || 0);
-            return s + actualProfit;
-          }, 0);
-          
-          const cost = Math.max(0, revenue - profit);
-          return { label, revenue, cost, profit };
+          return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
         });
-        setLastSixMonths(monthly);
+        setMonthlyRevenue(revenueData);
+
+        // Calculate monthly profit data (current month first)
+        const profitData = months.map(({ label, start, end }) => {
+          const soldInMonth = (data.bikes || []).filter((b: any) => {
+            const statusStr = String(b.status || '').trim().toLowerCase();
+            if (statusStr !== 'sold' || !b.dateSold) return false;
+            const d = new Date(b.dateSold);
+            return !isNaN(d.getTime()) && d >= start && d <= end;
+          });
+          
+          const amount = soldInMonth.reduce((s: number, b: any) => 
+            s + toNumber(b.actualProfit || 0), 0);
+          
+          return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
+        });
+        setMonthlyProfit(profitData);
       }
     } catch (error) {
       console.error('Failed to fetch inventory count:', error);
@@ -304,37 +312,45 @@ export default function DashboardPage() {
         )}
         {company.type === 'dealership' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.2fr auto', gap: '2rem', alignItems: 'stretch', marginTop: '-0.25rem', marginBottom: '1.5rem' }}>
-            {/* Revenue last 6 months */}
+            {/* Revenue Bar Chart - 6 Months */}
             <div className="kpi-card" style={{ padding: '1.25rem', minHeight: '260px' }}>
               <div style={{ color: '#94a3b8', marginBottom: '0.75rem', fontWeight: 700, textAlign: 'center' }}>Revenue (Last 6 Months)</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', height: '180px' }}>
-                {(() => { const maxRev = Math.max(1, ...lastSixMonths.map(x => x.revenue)); return lastSixMonths.map((m, idx) => {
-                  const barH = Math.max(8, Math.round((m.revenue / maxRev) * 160));
-                  const color = 'rgba(59, 130, 246, 0.9)'; // blue
-                  return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '36px', flex: 1 }}>
-                      <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginBottom: '0.35rem', whiteSpace: 'nowrap' }}>{formatCurrencyShort(m.revenue)}</div>
-                      <div style={{ height: `${barH}px`, width: '32px', background: color, border: '1px solid rgba(59,130,246,0.5)', borderRadius: '8px' }} title={`${m.label}: $${m.revenue.toLocaleString()}`} />
-                      <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.45rem' }}>{m.label}</div>
-                    </div>
-                  ); }); })()}
+                {monthlyRevenue.length > 0 && (() => { 
+                  const maxAmount = Math.max(1, ...monthlyRevenue.map(x => x.amount)); 
+                  return monthlyRevenue.map((m, idx) => {
+                    const barH = Math.max(8, Math.round((m.amount / maxAmount) * 160));
+                    const color = 'rgba(59, 130, 246, 0.9)'; // blue
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '36px', flex: 1 }}>
+                        <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginBottom: '0.35rem', whiteSpace: 'nowrap' }}>{formatCurrencyShort(m.amount)}</div>
+                        <div style={{ height: `${barH}px`, width: '32px', background: color, border: '1px solid rgba(59,130,246,0.5)', borderRadius: '8px' }} title={`${m.label}: $${m.amount.toLocaleString()}`} />
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.45rem' }}>{m.label}</div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
-            {/* Profit last 6 months */}
+            {/* Profit Bar Chart - 6 Months */}
             <div className="kpi-card" style={{ padding: '1.25rem', minHeight: '260px' }}>
               <div style={{ color: '#94a3b8', marginBottom: '0.75rem', fontWeight: 700, textAlign: 'center' }}>Profit (Last 6 Months)</div>
               <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '1rem', height: '180px' }}>
-                {(() => { const maxProfit = Math.max(1, ...lastSixMonths.map(x => x.profit)); return lastSixMonths.map((m, idx) => {
-                  const barH = Math.max(8, Math.round((m.profit / maxProfit) * 160));
-                  const color = 'rgba(168, 85, 247, 0.95)'; // purple
-                  return (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '36px', flex: 1 }}>
-                      <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginBottom: '0.35rem', whiteSpace: 'nowrap' }}>{formatCurrencyShort(m.profit)}</div>
-                      <div style={{ height: `${barH}px`, width: '32px', background: color, border: '1px solid rgba(168,85,247,0.5)', borderRadius: '8px' }} title={`${m.label}: $${m.profit.toLocaleString()}`} />
-                      <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.45rem' }}>{m.label}</div>
-                    </div>
-                  ); }); })()}
+                {monthlyProfit.length > 0 && (() => { 
+                  const maxAmount = Math.max(1, ...monthlyProfit.map(x => x.amount)); 
+                  return monthlyProfit.map((m, idx) => {
+                    const barH = Math.max(8, Math.round((m.amount / maxAmount) * 160));
+                    const color = 'rgba(168, 85, 247, 0.95)'; // purple
+                    return (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '36px', flex: 1 }}>
+                        <div style={{ color: '#cbd5e1', fontSize: '0.8rem', marginBottom: '0.35rem', whiteSpace: 'nowrap' }}>{formatCurrencyShort(m.amount)}</div>
+                        <div style={{ height: `${barH}px`, width: '32px', background: color, border: '1px solid rgba(168,85,247,0.5)', borderRadius: '8px' }} title={`${m.label}: $${m.amount.toLocaleString()}`} />
+                        <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginTop: '0.45rem' }}>{m.label}</div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
 
@@ -361,18 +377,20 @@ export default function DashboardPage() {
         )}
 
         {/* Monthly computation breakdown */}
-        {company.type === 'dealership' && lastSixMonths.length > 0 && (
+        {company.type === 'dealership' && monthlyRevenue.length > 0 && (
           <div className="kpi-card" style={{ padding: '1rem', marginBottom: '1.5rem' }}>
             <div style={{ color: '#94a3b8', fontWeight: 700, marginBottom: '0.5rem' }}>Monthly Breakdown (Sold bikes only)</div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '0.75rem' }}>
-              {lastSixMonths.map((m, idx) => (
-                <div key={idx} style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '8px', padding: '0.75rem' }}>
-                  <div style={{ color: '#cbd5e1', fontWeight: 700, marginBottom: '0.35rem' }}>{m.label}</div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Revenue: <span style={{ color: 'white' }}>{formatCurrencyFull(m.revenue)}</span></div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Cost: <span style={{ color: 'white' }}>{formatCurrencyFull(m.cost)}</span></div>
-                  <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Profit: <span style={{ color: 'white' }}>{formatCurrencyFull(m.profit)}</span></div>
-                </div>
-              ))}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '0.75rem' }}>
+              {monthlyRevenue.map((revenueMonth, idx) => {
+                const profitMonth = monthlyProfit.find(p => p.month === revenueMonth.month);
+                return (
+                  <div key={idx} style={{ background: 'rgba(148,163,184,0.1)', border: '1px solid rgba(148,163,184,0.2)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <div style={{ color: '#cbd5e1', fontWeight: 700, marginBottom: '0.35rem' }}>{revenueMonth.label}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Revenue: <span style={{ color: 'white' }}>{formatCurrencyFull(revenueMonth.amount)}</span></div>
+                    <div style={{ color: '#94a3b8', fontSize: '0.85rem' }}>Profit: <span style={{ color: 'white' }}>{formatCurrencyFull(profitMonth?.amount || 0)}</span></div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
