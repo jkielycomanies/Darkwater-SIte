@@ -1,0 +1,327 @@
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import clientPromise from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
+
+export async function POST() {
+  try {
+    const client = await clientPromise;
+    const db = client.db('darkwater-pos');
+
+    // Create companies if they don't exist
+    const companies = [
+      { slug: 'revani', name: 'Revani', type: 'dealership' as const },
+      { slug: 'darkwater-systems', name: 'Darkwater Systems', type: 'software' as const },
+      { slug: 'ahmeds-dealership', name: 'Ahmed\'s Dealership', type: 'dealership' as const },
+      { slug: 'darkwater-syndicate', name: 'Darkwater Syndicate', type: 'holding' as const },
+    ];
+
+    const createdCompanies = [];
+    for (const companyData of companies) {
+      let company = await db.collection('companies').findOne({ slug: companyData.slug });
+      if (!company) {
+        const result = await db.collection('companies').insertOne({
+          ...companyData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        company = { ...companyData, _id: result.insertedId };
+      }
+      createdCompanies.push(company);
+    }
+
+    // Create admin user if it doesn't exist
+    let adminUser = await UserModel.findByEmail(db, 'admin@darkwater.local');
+    if (!adminUser) {
+      const passwordHash = await bcrypt.hash('ChangeMe!123', 12);
+      adminUser = await UserModel.create(db, {
+        name: 'Admin User',
+        email: 'admin@darkwater.local',
+        passwordHash,
+      });
+    }
+
+    // Create memberships for admin user (owner of all companies)
+    for (const company of createdCompanies) {
+      const existingMembership = await MembershipModel.findByUserIdAndCompanyId(
+        db, 
+        adminUser._id!.toString(), 
+        company._id!.toString()
+      );
+
+      if (!existingMembership) {
+        await MembershipModel.create(db, {
+          userId: adminUser._id!,
+          companyId: company._id!,
+          role: 'OWNER',
+        });
+      }
+    }
+
+    // Seed inventory data for Revani company
+    const revaniCompany = createdCompanies.find(c => c.slug === 'revani');
+    if (revaniCompany) {
+      // Seed Bike Inventory
+      const existingBikes = await BikeInventoryModel.findByCompany(db, 'revani');
+      if (existingBikes.length === 0) {
+        const bikeData = [
+          {
+            companyId: revaniCompany._id!,
+            name: '2024 Yamaha R1',
+            category: 'Sport',
+            price: 18999,
+            status: 'Available' as const,
+            vin: 'JYA1WE010MA000001',
+            year: 2024,
+            mileage: '0 mi',
+            brand: 'Yamaha',
+            model: 'R1',
+            color: 'Blue',
+            description: 'Brand new 2024 Yamaha R1 in pristine condition'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: '2023 Honda CBR600RR',
+            category: 'Sport',
+            price: 12499,
+            status: 'Sold' as const,
+            vin: 'JH2PC4104NM200001',
+            year: 2023,
+            mileage: '1,250 mi',
+            brand: 'Honda',
+            model: 'CBR600RR',
+            color: 'Red',
+            description: 'Well-maintained Honda CBR600RR with low mileage'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: '2024 Kawasaki Ninja H2',
+            category: 'Sport',
+            price: 29500,
+            status: 'Reserved' as const,
+            vin: 'JKAZF2J18PA000001',
+            year: 2024,
+            mileage: '0 mi',
+            brand: 'Kawasaki',
+            model: 'Ninja H2',
+            color: 'Green',
+            description: 'Supercharged Kawasaki Ninja H2 - ultimate performance'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: '2023 BMW R1250GS',
+            category: 'Adventure',
+            price: 18750,
+            status: 'Available' as const,
+            vin: 'WB10G3100PM000001',
+            year: 2023,
+            mileage: '2,100 mi',
+            brand: 'BMW',
+            model: 'R1250GS',
+            color: 'White',
+            description: 'Adventure-ready BMW GS with touring accessories'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: '2024 Ducati Panigale V4',
+            category: 'Sport',
+            price: 24995,
+            status: 'Available' as const,
+            vin: 'ZDM12AKU6PB000001',
+            year: 2024,
+            mileage: '0 mi',
+            brand: 'Ducati',
+            model: 'Panigale V4',
+            color: 'Red',
+            description: 'Italian superbike excellence - Ducati Panigale V4'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: '2023 Harley-Davidson Street Glide',
+            category: 'Cruiser',
+            price: 22899,
+            status: 'Available' as const,
+            vin: '1HD1KB413LB000001',
+            year: 2023,
+            mileage: '850 mi',
+            brand: 'Harley-Davidson',
+            model: 'Street Glide',
+            color: 'Black',
+            description: 'Classic American touring motorcycle'
+          }
+        ];
+
+        for (const bike of bikeData) {
+          await BikeInventoryModel.create(db, 'revani', bike);
+        }
+      }
+
+      // Seed Parts Inventory
+      const existingParts = await PartsInventoryModel.findByCompany(db, 'revani');
+      if (existingParts.length === 0) {
+        const partsData = [
+          {
+            companyId: revaniCompany._id!,
+            name: 'Yamaha R1 Engine Oil Filter',
+            category: 'Filters',
+            price: 15.99,
+            status: 'In Stock' as const,
+            partNumber: 'YAM-5GH-13440-30',
+            stock: 25,
+            brand: 'Yamaha',
+            description: 'OEM oil filter for Yamaha R1 models'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Honda CBR Brake Pads Front',
+            category: 'Brakes',
+            price: 89.99,
+            status: 'Low Stock' as const,
+            partNumber: 'HON-06455-MEN-305',
+            stock: 3,
+            brand: 'Honda',
+            description: 'High-performance brake pads for Honda CBR series'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Kawasaki H2 Air Filter',
+            category: 'Filters',
+            price: 45.99,
+            status: 'In Stock' as const,
+            partNumber: 'KAW-11013-0726',
+            stock: 15,
+            brand: 'Kawasaki',
+            description: 'Performance air filter for Kawasaki H2'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'BMW GS Chain 525x120',
+            category: 'Drive Train',
+            price: 125.99,
+            status: 'Out of Stock' as const,
+            partNumber: 'BMW-82117-713-939',
+            stock: 0,
+            brand: 'BMW',
+            description: 'Heavy-duty chain for BMW GS series'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Ducati V4 Spark Plugs (4pk)',
+            category: 'Engine',
+            price: 68.99,
+            status: 'In Stock' as const,
+            partNumber: 'DUC-67090111A',
+            stock: 12,
+            brand: 'Ducati',
+            description: 'OEM spark plugs for Ducati V4 engines'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Universal LED Headlight',
+            category: 'Lighting',
+            price: 199.99,
+            status: 'In Stock' as const,
+            partNumber: 'UNI-HL-7000-LED',
+            stock: 8,
+            brand: 'Universal',
+            description: 'High-output LED headlight kit'
+          }
+        ];
+
+        for (const part of partsData) {
+          await PartsInventoryModel.create(db, 'revani', part);
+        }
+      }
+
+      // Seed Accessories Inventory
+      const existingAccessories = await AccessoriesInventoryModel.findByCompany(db, 'revani');
+      if (existingAccessories.length === 0) {
+        const accessoriesData = [
+          {
+            companyId: revaniCompany._id!,
+            name: 'Premium Motorcycle Helmet',
+            category: 'Safety',
+            price: 299.99,
+            status: 'Available' as const,
+            sku: 'HLM-PREM-001',
+            stock: 15,
+            brand: 'Shoei',
+            description: 'DOT/ECE certified premium helmet with advanced ventilation'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Leather Riding Gloves',
+            category: 'Safety',
+            price: 89.99,
+            status: 'Available' as const,
+            sku: 'GLV-LTHR-002',
+            stock: 28,
+            brand: 'Alpinestars',
+            description: 'Professional-grade leather gloves with knuckle protection'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Tank Bag Magnetic',
+            category: 'Storage',
+            price: 159.99,
+            status: 'Low Stock' as const,
+            sku: 'BAG-TANK-003',
+            stock: 4,
+            brand: 'SW-Motech',
+            description: 'Magnetic tank bag with phone window and rain cover'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'LED Turn Signal Kit',
+            category: 'Lighting',
+            price: 79.99,
+            status: 'Available' as const,
+            sku: 'LED-TURN-004',
+            stock: 12,
+            brand: 'Rizoma',
+            description: 'Premium LED turn signals with integrated position lights'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Phone Mount Universal',
+            category: 'Electronics',
+            price: 45.99,
+            status: 'Available' as const,
+            sku: 'MNT-PHON-005',
+            stock: 22,
+            brand: 'RAM',
+            description: 'Heavy-duty phone mount with vibration dampening'
+          },
+          {
+            companyId: revaniCompany._id!,
+            name: 'Motorcycle Cover Waterproof',
+            category: 'Protection',
+            price: 89.99,
+            status: 'Out of Stock' as const,
+            sku: 'CVR-WTRF-006',
+            stock: 0,
+            brand: 'Nelson-Rigg',
+            description: 'All-weather motorcycle cover with security grommets'
+          }
+        ];
+
+        for (const accessory of accessoriesData) {
+          await AccessoriesInventoryModel.create(db, 'revani', accessory);
+        }
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Database seeded successfully',
+      companies: createdCompanies.length,
+      user: adminUser.email,
+    });
+  } catch (error) {
+    console.error('Seed error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to seed database' },
+      { status: 500 }
+    );
+  }
+} 
