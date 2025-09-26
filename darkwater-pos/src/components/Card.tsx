@@ -1,4 +1,5 @@
 import React from 'react';
+// Vercel deployment test - ensuring automatic deployments work
 
 interface CardProps {
   children: React.ReactNode;
