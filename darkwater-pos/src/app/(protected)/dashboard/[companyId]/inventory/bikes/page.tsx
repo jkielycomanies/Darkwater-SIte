@@ -67,6 +67,9 @@ export default function BikeInventoryPage() {
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   // Search and filter states
+  type RangeKey = 'yearRange' | 'mileageRange' | 'ccRange';
+  type RangeProp = 'min' | 'max';
+
   const [searchFilters, setSearchFilters] = useState({
     searchText: '',
     make: '',
@@ -255,14 +258,17 @@ export default function BikeInventoryPage() {
     }));
   };
 
-  const handleRangeChange = (rangeType: string, minMax: string, value: string) => {
-    setSearchFilters(prev => ({
-      ...prev,
-      [rangeType]: {
-        ...prev[rangeType as keyof typeof prev],
-        [minMax]: value
-      }
-    }));
+  const handleRangeChange = (rangeType: RangeKey, minMax: RangeProp, value: string) => {
+    setSearchFilters(prev => {
+      const currentRange = (prev as any)[rangeType] || { min: '', max: '' };
+      return {
+        ...prev,
+        [rangeType]: {
+          ...currentRange,
+          [minMax]: value,
+        },
+      } as typeof prev;
+    });
   };
 
   const clearFilters = () => {
