@@ -181,6 +181,21 @@ export default function DashboardPage() {
               const totalCosts = parts + services + transport + acquisition + projectedCosts;
               const bikeProfit = salePrice - totalCosts;
               
+              // Debug logging for September profit discrepancy
+              if (label === 'Sep' && bikeProfit !== 0) {
+                console.log(`Sept Bike Profit Debug - ${b.make} ${b.model}:`, {
+                  salePrice,
+                  parts,
+                  services,
+                  transport,
+                  acquisition,
+                  projectedCosts,
+                  totalCosts,
+                  bikeProfit,
+                  bikeId: b._id
+                });
+              }
+              
               return s + (isFinite(bikeProfit) ? bikeProfit : 0);
             } catch (error) {
               console.error('Error calculating bike profit:', error);
@@ -189,6 +204,24 @@ export default function DashboardPage() {
           }, 0);
           
           const cost = Math.max(0, revenue - profit);
+          
+          // Debug logging for September total
+          if (label === 'Sep') {
+            console.log(`September Total Profit Calculation:`, {
+              soldBikesCount: soldInMonth.length,
+              totalRevenue: revenue,
+              totalProfit: profit,
+              totalCost: cost,
+              soldBikes: soldInMonth.map(b => ({
+                make: b.make,
+                model: b.model,
+                id: b._id,
+                salePrice: toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0),
+                dateSold: b.dateSold
+              }))
+            });
+          }
+          
           return { label, revenue, cost, profit };
         });
         setLastSixMonths(monthly);
