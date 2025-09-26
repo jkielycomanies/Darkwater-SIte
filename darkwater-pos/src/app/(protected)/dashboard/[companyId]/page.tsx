@@ -166,62 +166,13 @@ export default function DashboardPage() {
           // Revenue: sum actual sale values
           const revenue = soldInMonth.reduce((s: number, b: any) => s + toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0), 0);
           
-          // Profit: Calculate actual profit by subtracting all costs from sale price
+          // Profit: Use the pre-calculated actualProfit field from database
           const profit = soldInMonth.reduce((s: number, b: any) => {
-            try {
-              const salePrice = toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0);
-              
-              // Calculate all costs for this bike
-              const parts = Array.isArray(b.parts) ? b.parts.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-              const services = Array.isArray(b.services) ? b.services.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-              const transport = Array.isArray(b.transportation) ? b.transportation.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-              const acquisition = toNumber(b.acquisitionPrice || b.purchasePrice || b.boughtFor || b.acquiredPrice || b.cost || b.price || 0);
-              const projectedCosts = toNumber(b.projectedCosts || 0);
-              
-              const totalCosts = parts + services + transport + acquisition + projectedCosts;
-              const bikeProfit = salePrice - totalCosts;
-              
-              // Debug logging for September profit discrepancy
-              if (label === 'Sep' && bikeProfit !== 0) {
-                console.log(`Sept Bike Profit Debug - ${b.make} ${b.model}:`, {
-                  salePrice,
-                  parts,
-                  services,
-                  transport,
-                  acquisition,
-                  projectedCosts,
-                  totalCosts,
-                  bikeProfit,
-                  bikeId: b._id
-                });
-              }
-              
-              return s + (isFinite(bikeProfit) ? bikeProfit : 0);
-            } catch (error) {
-              console.error('Error calculating bike profit:', error);
-              return s;
-            }
+            const actualProfit = toNumber(b.actualProfit || 0);
+            return s + actualProfit;
           }, 0);
           
           const cost = Math.max(0, revenue - profit);
-          
-          // Debug logging for September total
-          if (label === 'Sep') {
-            console.log(`September Total Profit Calculation:`, {
-              soldBikesCount: soldInMonth.length,
-              totalRevenue: revenue,
-              totalProfit: profit,
-              totalCost: cost,
-              soldBikes: soldInMonth.map(b => ({
-                make: b.make,
-                model: b.model,
-                id: b._id,
-                salePrice: toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0),
-                dateSold: b.dateSold
-              }))
-            });
-          }
-          
           return { label, revenue, cost, profit };
         });
         setLastSixMonths(monthly);
