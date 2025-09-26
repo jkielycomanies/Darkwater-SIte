@@ -46,3 +46,4 @@ jobs:
         NEXTAUTH_SECRET: test-secret
         MONGODB_URI: mongodb://localhost:27017/test
         EMAIL_FROM: test@example.com
+
