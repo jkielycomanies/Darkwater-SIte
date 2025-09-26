@@ -168,19 +168,24 @@ export default function DashboardPage() {
           
           // Profit: Calculate actual profit by subtracting all costs from sale price
           const profit = soldInMonth.reduce((s: number, b: any) => {
-            const salePrice = toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0);
-            
-            // Calculate all costs for this bike
-            const parts = Array.isArray(b.parts) ? b.parts.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-            const services = Array.isArray(b.services) ? b.services.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-            const transport = Array.isArray(b.transportation) ? b.transportation.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
-            const acquisition = toNumber(b.acquisitionPrice || b.purchasePrice || b.boughtFor || b.acquiredPrice || b.cost || b.price || 0);
-            const projectedCosts = toNumber(b.projectedCosts || 0);
-            
-            const totalCosts = parts + services + transport + acquisition + projectedCosts;
-            const bikeProfit = salePrice - totalCosts;
-            
-            return s + bikeProfit;
+            try {
+              const salePrice = toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0);
+              
+              // Calculate all costs for this bike
+              const parts = Array.isArray(b.parts) ? b.parts.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
+              const services = Array.isArray(b.services) ? b.services.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
+              const transport = Array.isArray(b.transportation) ? b.transportation.reduce((sum: number, p: any) => sum + toNumber(p?.cost || 0), 0) : 0;
+              const acquisition = toNumber(b.acquisitionPrice || b.purchasePrice || b.boughtFor || b.acquiredPrice || b.cost || b.price || 0);
+              const projectedCosts = toNumber(b.projectedCosts || 0);
+              
+              const totalCosts = parts + services + transport + acquisition + projectedCosts;
+              const bikeProfit = salePrice - totalCosts;
+              
+              return s + (isFinite(bikeProfit) ? bikeProfit : 0);
+            } catch (error) {
+              console.error('Error calculating bike profit:', error);
+              return s;
+            }
           }, 0);
           
           const cost = Math.max(0, revenue - profit);
