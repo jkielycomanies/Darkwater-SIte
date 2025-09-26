@@ -163,17 +163,15 @@ export default function DashboardPage() {
             if (isNaN(d.getTime())) return false;
             return d >= start && d <= end;
           });
-          // Revenue: sum actual sale values
-          const revenue = soldInMonth.reduce((s: number, b: any) => s + toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0), 0);
           
-          // Profit: Use the pre-calculated actualProfit field from database
+          // Profit: Use ONLY the pre-calculated actualProfit field from database
           const profit = soldInMonth.reduce((s: number, b: any) => {
             const actualProfit = toNumber(b.actualProfit || 0);
             return s + actualProfit;
           }, 0);
           
-          const cost = Math.max(0, revenue - profit);
-          return { label, revenue, cost, profit };
+          // No revenue or cost calculations - just profit
+          return { label, revenue: 0, cost: 0, profit };
         });
         setLastSixMonths(monthly);
       }
