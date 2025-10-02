@@ -1,24 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MongoClient, ObjectId } from 'mongodb';
-
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  throw new Error('MONGODB_URI environment variable is not defined');
-}
-
-const client = new MongoClient(uri);
+import { ObjectId } from 'mongodb';
+import clientPromise from '@/lib/mongodb';
 
 // PUT - Update a transaction
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { companyId: string; transactionId: string } }
+  { params }: { params: Promise<{ companyId: string; transactionId: string }> }
 ) {
   try {
     const body = await request.json();
-    
-    await client.connect();
-    const db = client.db('darkwater');
-    const collection = db.collection('revani_transaction');
+    const client = await clientPromise;
+    const db = client.db('darkwater-pos');
+    const { companyId, transactionId } = await params;
+
+    // Verify company exists
+    const company = await db.collection('companies').findOne({ slug: companyId });
+    if (!company) {
+      return NextResponse.json(
+        { success: false, error: 'Company not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use company-specific collection name
+    const collectionName = `${company.slug}_transactions`;
 
     // Update transaction
     const updateData = {
@@ -29,11 +34,8 @@ export async function PUT(
     // Remove _id from update data to avoid conflicts
     delete updateData._id;
 
-    const result = await collection.updateOne(
-      { 
-        _id: new ObjectId(params.transactionId),
-        companyId: params.companyId 
-      },
+    const result = await db.collection(collectionName).updateOne(
+      { _id: new ObjectId(transactionId) },
       { $set: updateData }
     );
 
@@ -54,24 +56,33 @@ export async function PUT(
       { success: false, error: 'Failed to update transaction' },
       { status: 500 }
     );
-  } finally {
-    await client.close();
   }
 }
 
 // DELETE - Delete a transaction
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { companyId: string; transactionId: string } }
+  { params }: { params: Promise<{ companyId: string; transactionId: string }> }
 ) {
   try {
-    await client.connect();
-    const db = client.db('darkwater');
-    const collection = db.collection('revani_transaction');
+    const client = await clientPromise;
+    const db = client.db('darkwater-pos');
+    const { companyId, transactionId } = await params;
 
-    const result = await collection.deleteOne({
-      _id: new ObjectId(params.transactionId),
-      companyId: params.companyId
+    // Verify company exists
+    const company = await db.collection('companies').findOne({ slug: companyId });
+    if (!company) {
+      return NextResponse.json(
+        { success: false, error: 'Company not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use company-specific collection name
+    const collectionName = `${company.slug}_transactions`;
+
+    const result = await db.collection(collectionName).deleteOne({
+      _id: new ObjectId(transactionId)
     });
 
     if (result.deletedCount === 0) {
@@ -91,7 +102,5 @@ export async function DELETE(
       { success: false, error: 'Failed to delete transaction' },
       { status: 500 }
     );
-  } finally {
-    await client.close();
   }
 }

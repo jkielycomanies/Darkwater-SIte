@@ -1,25 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MongoClient, ObjectId } from 'mongodb';
-
-const uri = process.env.MONGODB_URI;
-if (!uri) {
-  throw new Error('MONGODB_URI environment variable is not defined');
-}
-
-const client = new MongoClient(uri);
+import { ObjectId } from 'mongodb';
+import clientPromise from '@/lib/mongodb';
 
 // GET - Fetch all transactions for a company
 export async function GET(
   request: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
-    await client.connect();
-    const db = client.db('darkwater');
-    const collection = db.collection('revani_transaction');
+    const client = await clientPromise;
+    const db = client.db('darkwater-pos');
+    const { companyId } = await params;
 
-    const transactions = await collection
-      .find({ companyId: params.companyId })
+    // Verify company exists
+    const company = await db.collection('companies').findOne({ slug: companyId });
+    if (!company) {
+      return NextResponse.json(
+        { success: false, error: 'Company not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use company-specific collection name
+    const collectionName = `${company.slug}_transactions`;
+    const transactions = await db.collection(collectionName)
+      .find({})
       .sort({ date: -1 })
       .toArray();
 
@@ -33,32 +38,41 @@ export async function GET(
       { success: false, error: 'Failed to fetch transactions' },
       { status: 500 }
     );
-  } finally {
-    await client.close();
   }
 }
 
 // POST - Create a new transaction
 export async function POST(
   request: NextRequest,
-  { params }: { params: { companyId: string } }
+  { params }: { params: Promise<{ companyId: string }> }
 ) {
   try {
     const body = await request.json();
-    
-    await client.connect();
-    const db = client.db('darkwater');
-    const collection = db.collection('revani_transaction');
+    const client = await clientPromise;
+    const db = client.db('darkwater-pos');
+    const { companyId } = await params;
 
+    // Verify company exists
+    const company = await db.collection('companies').findOne({ slug: companyId });
+    if (!company) {
+      return NextResponse.json(
+        { success: false, error: 'Company not found' },
+        { status: 404 }
+      );
+    }
+
+    // Use company-specific collection name
+    const collectionName = `${company.slug}_transactions`;
+    
     // Create transaction with proper structure
     const transaction = {
       ...body,
-      companyId: params.companyId,
+      companyId: companyId,
       createdAt: new Date(),
       updatedAt: new Date()
     };
 
-    const result = await collection.insertOne(transaction);
+    const result = await db.collection(collectionName).insertOne(transaction);
     
     // Return the created transaction with the MongoDB _id
     const createdTransaction = {
@@ -76,7 +90,5 @@ export async function POST(
       { success: false, error: 'Failed to create transaction' },
       { status: 500 }
     );
-  } finally {
-    await client.close();
   }
 }
