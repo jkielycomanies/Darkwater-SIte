@@ -622,6 +622,7 @@ export default function TransactionsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Actions</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Date</th>
                   <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Amount</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Provider</th>
@@ -634,12 +635,36 @@ export default function TransactionsPage() {
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Recurring</th>
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Useful</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Description</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTransactions.map((transaction) => (
                   <tr key={transaction._id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                    {/* Actions */}
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleEditTransaction(transaction)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: '0.375rem',
+                          color: '#60a5fa',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.2)';
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </td>
+                    
                     {/* Date */}
                     <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
                       {new Date(transaction.date).toLocaleDateString()}
@@ -736,31 +761,6 @@ export default function TransactionsPage() {
                       <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {transaction.description || '-'}
                       </div>
-                    </td>
-                    
-                    {/* Actions */}
-                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleEditTransaction(transaction)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          background: 'rgba(59, 130, 246, 0.2)',
-                          border: '1px solid rgba(59, 130, 246, 0.3)',
-                          borderRadius: '0.375rem',
-                          color: '#60a5fa',
-                          fontSize: '0.75rem',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onMouseEnter={(e) => {
-                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.2)';
-                        }}
-                      >
-                        Edit
-                      </button>
                     </td>
                   </tr>
                 ))}
