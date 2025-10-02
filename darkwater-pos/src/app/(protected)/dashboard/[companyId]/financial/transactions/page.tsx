@@ -152,72 +152,8 @@ export default function TransactionsPage() {
         const data = await response.json();
         setTransactions(data.transactions || []);
       } else {
-        console.log('Transactions API failed, using fallback data');
-        // Fallback to mock data if API fails
-        const mockTransactions: Transaction[] = [
-        {
-          _id: '1',
-          type: 'income',
-          category: 'Sales',
-          amount: 25000,
-          description: 'Motorcycle sale - Yamaha R1',
-          date: '2024-01-15',
-          paymentMethod: 'Financing',
-          reference: 'SALE-001',
-          status: 'completed',
-          companyId: companyId
-        },
-        {
-          _id: '2',
-          type: 'expense',
-          category: 'Parts',
-          amount: 850,
-          description: 'Brake pads and oil filter',
-          date: '2024-01-14',
-          paymentMethod: 'Credit Card',
-          reference: 'EXP-001',
-          status: 'completed',
-          companyId: companyId
-        },
-        {
-          _id: '3',
-          type: 'income',
-          category: 'Service',
-          amount: 1200,
-          description: 'Full service - Honda CBR600RR',
-          date: '2024-01-13',
-          paymentMethod: 'Cash',
-          reference: 'SVC-001',
-          status: 'completed',
-          companyId: companyId
-        },
-        {
-          _id: '4',
-          type: 'expense',
-          category: 'Transportation',
-          amount: 300,
-          description: 'Bike pickup from auction',
-          date: '2024-01-12',
-          paymentMethod: 'Cash',
-          reference: 'TRANS-001',
-          status: 'completed',
-          companyId: companyId
-        },
-        {
-          _id: '5',
-          type: 'income',
-          category: 'Accessories',
-          amount: 450,
-          description: 'Helmet and riding gear sale',
-          date: '2024-01-11',
-          paymentMethod: 'Credit Card',
-          reference: 'ACC-001',
-          status: 'pending',
-          companyId: companyId
-        }
-      ];
-      
-      setTransactions(mockTransactions);
+        console.log('Transactions API failed, no transactions found');
+        setTransactions([]);
       }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
