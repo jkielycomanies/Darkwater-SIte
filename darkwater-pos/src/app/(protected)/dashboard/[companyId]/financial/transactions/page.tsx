@@ -67,7 +67,7 @@ export default function TransactionsPage() {
     type: 'expense',
     vehicle: '',
     classification: 'Operating',
-    purchase: '',
+    purchase: session?.user?.name || '',
     movement: '',
     recurring: false,
     useful: false,
@@ -95,6 +95,16 @@ export default function TransactionsPage() {
       fetchDerivedTransactions(params.companyId as string).catch(() => {});
     }
   }, [status, router, params]);
+
+  // Update purchaser field when session becomes available
+  useEffect(() => {
+    if (session?.user?.name) {
+      setNewTransaction(prev => ({
+        ...prev,
+        purchase: session.user.name
+      }));
+    }
+  }, [session]);
 
   const fetchCompanyData = async (companyId: string) => {
     try {
@@ -284,7 +294,7 @@ export default function TransactionsPage() {
         type: 'expense',
         vehicle: '',
         classification: 'Operating',
-        purchase: '',
+        purchase: session?.user?.name || '',
         movement: '',
         recurring: false,
         useful: false,
