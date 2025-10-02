@@ -59,6 +59,7 @@ export default function TransactionsPage() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [newTransaction, setNewTransaction] = useState({
     date: new Date().toISOString().split('T')[0],
     amount: '',
@@ -262,50 +263,116 @@ export default function TransactionsPage() {
 
   const handleAddTransaction = () => {
     if (newTransaction.amount && newTransaction.name && newTransaction.description) {
-      const transaction: Transaction = {
-        _id: Math.random().toString(36).substr(2, 9),
-        date: newTransaction.date,
-        amount: parseFloat(newTransaction.amount),
-        provider: newTransaction.provider,
-        name: newTransaction.name,
-        type: newTransaction.type as 'income' | 'expense' | 'transfer',
-        vehicle: newTransaction.vehicle,
-        classification: newTransaction.classification,
-        purchase: newTransaction.purchase,
-        movement: newTransaction.movement,
-        recurring: newTransaction.recurring,
-        useful: newTransaction.useful,
-        description: newTransaction.description,
-        // Legacy fields for compatibility
-        category: newTransaction.category,
-        paymentMethod: newTransaction.paymentMethod,
-        reference: newTransaction.reference || `REF-${Date.now()}`,
-        status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
-        companyId: params.companyId as string
-      };
+      if (editingTransaction) {
+        // Update existing transaction
+        const updatedTransaction: Transaction = {
+          ...editingTransaction,
+          date: newTransaction.date,
+          amount: parseFloat(newTransaction.amount),
+          provider: newTransaction.provider,
+          name: newTransaction.name,
+          type: newTransaction.type as 'income' | 'expense' | 'transfer',
+          vehicle: newTransaction.vehicle,
+          classification: newTransaction.classification,
+          purchase: newTransaction.purchase,
+          movement: newTransaction.movement,
+          recurring: newTransaction.recurring,
+          useful: newTransaction.useful,
+          description: newTransaction.description,
+          // Legacy fields for compatibility
+          category: newTransaction.category,
+          paymentMethod: newTransaction.paymentMethod,
+          reference: newTransaction.reference || editingTransaction.reference,
+          status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
+        };
+        
+        setTransactions(prev => prev.map(t => t._id === editingTransaction._id ? updatedTransaction : t));
+        setEditingTransaction(null);
+      } else {
+        // Add new transaction
+        const transaction: Transaction = {
+          _id: Math.random().toString(36).substr(2, 9),
+          date: newTransaction.date,
+          amount: parseFloat(newTransaction.amount),
+          provider: newTransaction.provider,
+          name: newTransaction.name,
+          type: newTransaction.type as 'income' | 'expense' | 'transfer',
+          vehicle: newTransaction.vehicle,
+          classification: newTransaction.classification,
+          purchase: newTransaction.purchase,
+          movement: newTransaction.movement,
+          recurring: newTransaction.recurring,
+          useful: newTransaction.useful,
+          description: newTransaction.description,
+          // Legacy fields for compatibility
+          category: newTransaction.category,
+          paymentMethod: newTransaction.paymentMethod,
+          reference: newTransaction.reference || `REF-${Date.now()}`,
+          status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
+          companyId: params.companyId as string
+        };
+        
+        setTransactions(prev => [transaction, ...prev]);
+      }
       
-      setTransactions(prev => [transaction, ...prev]);
       setShowAddModal(false);
-      setNewTransaction({
-        date: new Date().toISOString().split('T')[0],
-        amount: '',
-        provider: '',
-        name: '',
-        type: 'expense',
-        vehicle: '',
-        classification: 'Operating',
-        purchase: session?.user?.name || '',
-        movement: '',
-        recurring: false,
-        useful: false,
-        description: '',
-        // Legacy fields for compatibility
-        category: '',
-        paymentMethod: 'Chase DC',
-        reference: '',
-        status: 'completed'
-      });
+      resetForm();
     }
+  };
+
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setNewTransaction({
+      date: transaction.date,
+      amount: transaction.amount.toString(),
+      provider: transaction.provider || '',
+      name: transaction.name || '',
+      type: transaction.type,
+      vehicle: transaction.vehicle || '',
+      classification: transaction.classification || 'Operating',
+      purchase: transaction.purchase || '',
+      movement: transaction.movement || '',
+      recurring: transaction.recurring || false,
+      useful: transaction.useful || false,
+      description: transaction.description || '',
+      // Legacy fields for compatibility
+      category: transaction.category || '',
+      paymentMethod: transaction.paymentMethod || 'Chase DC',
+      reference: transaction.reference || '',
+      status: transaction.status || 'completed'
+    });
+    setShowAddModal(true);
+  };
+
+  const handleDeleteTransaction = () => {
+    if (editingTransaction) {
+      setTransactions(prev => prev.filter(t => t._id !== editingTransaction._id));
+      setEditingTransaction(null);
+      setShowAddModal(false);
+      resetForm();
+    }
+  };
+
+  const resetForm = () => {
+    setNewTransaction({
+      date: new Date().toISOString().split('T')[0],
+      amount: '',
+      provider: '',
+      name: '',
+      type: 'expense',
+      vehicle: '',
+      classification: 'Operating',
+      purchase: session?.user?.name || '',
+      movement: '',
+      recurring: false,
+      useful: false,
+      description: '',
+      // Legacy fields for compatibility
+      category: '',
+      paymentMethod: 'Chase DC',
+      reference: '',
+      status: 'completed'
+    });
   };
 
   if (status === 'loading' || isLoading) {
@@ -567,6 +634,7 @@ export default function TransactionsPage() {
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Recurring</th>
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Useful</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Description</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -669,6 +737,31 @@ export default function TransactionsPage() {
                         {transaction.description || '-'}
                       </div>
                     </td>
+                    
+                    {/* Actions */}
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleEditTransaction(transaction)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          background: 'rgba(59, 130, 246, 0.2)',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          borderRadius: '0.375rem',
+                          color: '#60a5fa',
+                          fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.3)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.target as HTMLElement).style.background = 'rgba(59, 130, 246, 0.2)';
+                        }}
+                      >
+                        Edit
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -717,7 +810,7 @@ export default function TransactionsPage() {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ color: 'white', fontSize: '1.25rem', fontWeight: '600', margin: 0 }}>
-                💰 Add New Transaction
+                {editingTransaction ? '✏️ Edit Transaction' : '💰 Add New Transaction'}
               </h3>
               <button
                 onClick={() => setShowAddModal(false)}
@@ -1018,42 +1111,72 @@ export default function TransactionsPage() {
             </div>
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
-              <button
-                onClick={() => setShowAddModal(false)}
-                style={{
-                  padding: '0.5rem 1.25rem',
-                  background: 'transparent',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  borderRadius: '0.375rem',
-                  color: '#94a3b8',
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleAddTransaction}
-                disabled={!newTransaction.amount || !newTransaction.name || !newTransaction.description}
-                style={{
-                  padding: '0.5rem 1.25rem',
-                  background: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
-                    ? 'rgba(107, 114, 128, 0.3)'
-                    : 'rgba(139, 92, 246, 0.8)',
-                  border: '1px solid rgba(139, 92, 246, 0.5)',
-                  borderRadius: '0.375rem',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  cursor: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
-                    ? 'not-allowed'
-                    : 'pointer',
-                  transition: 'all 0.3s ease'
-                }}
-              >
-                Add Transaction
-              </button>
+            <div style={{ display: 'flex', justifyContent: editingTransaction ? 'space-between' : 'flex-end', gap: '0.75rem', marginTop: '1.5rem' }}>
+              {editingTransaction && (
+                <button
+                  onClick={handleDeleteTransaction}
+                  style={{
+                    padding: '0.5rem 1.25rem',
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '0.375rem',
+                    color: '#f87171',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLElement).style.background = 'rgba(239, 68, 68, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLElement).style.background = 'rgba(239, 68, 68, 0.2)';
+                  }}
+                >
+                  🗑️ Delete Transaction
+                </button>
+              )}
+              
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  onClick={() => {
+                    setShowAddModal(false);
+                    setEditingTransaction(null);
+                    resetForm();
+                  }}
+                  style={{
+                    padding: '0.5rem 1.25rem',
+                    background: 'transparent',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: '#94a3b8',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddTransaction}
+                  disabled={!newTransaction.amount || !newTransaction.name || !newTransaction.description}
+                  style={{
+                    padding: '0.5rem 1.25rem',
+                    background: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
+                      ? 'rgba(107, 114, 128, 0.3)'
+                      : 'rgba(139, 92, 246, 0.8)',
+                    border: '1px solid rgba(139, 92, 246, 0.5)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    cursor: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
+                      ? 'not-allowed'
+                      : 'pointer',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {editingTransaction ? 'Update Transaction' : 'Add Transaction'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
