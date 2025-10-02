@@ -528,7 +528,7 @@ export default function TransactionsPage() {
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Payment Type</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Vehicle</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Classification</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Purchase</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Purchaser</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Movement</th>
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Recurring</th>
                   <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Useful</th>
@@ -579,7 +579,7 @@ export default function TransactionsPage() {
                       {transaction.classification || '-'}
                     </td>
                     
-                    {/* Purchase */}
+                    {/* Purchaser */}
                     <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
                       {transaction.purchase || '-'}
                     </td>
@@ -788,7 +788,7 @@ export default function TransactionsPage() {
               </div>
             </div>
 
-            {/* Row 2: Type, Vehicle, Classification, Purchase */}
+            {/* Row 2: Payment Type, Vehicle, Classification, Purchaser */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
@@ -859,13 +859,13 @@ export default function TransactionsPage() {
               
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Purchase
+                  Purchaser
                 </label>
                 <input
                   type="text"
                   value={newTransaction.purchase}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, purchase: e.target.value }))}
-                  placeholder="Purchase info"
+                  placeholder="Name of person who did transaction"
                   style={{
                     width: '100%',
                     padding: '0.5rem',
