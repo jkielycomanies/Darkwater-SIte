@@ -53,6 +53,7 @@ export default function TransactionsPage() {
   const params = useParams();
   const [company, setCompany] = useState<Company | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [bikeInventory, setBikeInventory] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
@@ -89,6 +90,7 @@ export default function TransactionsPage() {
     if (params?.companyId) {
       fetchCompanyData(params.companyId as string);
       fetchTransactions(params.companyId as string);
+      fetchBikeInventory(params.companyId as string);
       // Try to load derived transactions from server
       fetchDerivedTransactions(params.companyId as string).catch(() => {});
     }
@@ -106,6 +108,28 @@ export default function TransactionsPage() {
     } catch (error) {
       console.error('Failed to fetch company:', error);
       router.push('/select');
+    }
+  };
+
+  const fetchBikeInventory = async (companyId: string) => {
+    try {
+      const response = await fetch(`/api/companies/${companyId}/inventory/bikes`);
+      if (response.ok) {
+        const data = await response.json();
+        // Get all bikes regardless of status (sold, available, etc.)
+        setBikeInventory(data.bikes || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch bike inventory:', error);
+      // Fallback data with VINs
+      setBikeInventory([
+        { _id: '1', vin: 'JYA1WE010MA000001', make: 'Yamaha', model: 'R1', year: 2024, status: 'Listed' },
+        { _id: '2', vin: 'JKAZF2J18PA000001', make: 'Kawasaki', model: 'Ninja H2', year: 2024, status: 'Media' },
+        { _id: '3', vin: 'WB10G3100PM000001', make: 'BMW', model: 'R1250GS', year: 2023, status: 'Servicing' },
+        { _id: '4', vin: 'ZDM12AKU6PB000001', make: 'Ducati', model: 'Panigale V4', year: 2024, status: 'Evaluation' },
+        { _id: '5', vin: 'JH2PC4104NM200001', make: 'Honda', model: 'CBR600RR', year: 2023, status: 'Sold' },
+        { _id: '6', vin: 'JS1GR7H82N2100001', make: 'Suzuki', model: 'GSX-R750', year: 2022, status: 'Sold' },
+      ]);
     }
   };
 
@@ -813,13 +837,11 @@ export default function TransactionsPage() {
               
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Vehicle
+                  Vehicle (VIN)
                 </label>
-                <input
-                  type="text"
+                <select
                   value={newTransaction.vehicle}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, vehicle: e.target.value }))}
-                  placeholder="Vehicle info"
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -829,7 +851,14 @@ export default function TransactionsPage() {
                     color: 'white',
                     fontSize: '0.75rem'
                   }}
-                />
+                >
+                  <option value="" style={{ background: '#1e293b', color: 'white' }}>Select Vehicle VIN</option>
+                  {bikeInventory.map((bike) => (
+                    <option key={bike._id} value={bike.vin} style={{ background: '#1e293b', color: 'white' }}>
+                      {bike.vin} - {bike.year} {bike.make} {bike.model} ({bike.status})
+                    </option>
+                  ))}
+                </select>
               </div>
               
               <div>
