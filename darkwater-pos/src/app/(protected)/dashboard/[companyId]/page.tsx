@@ -132,6 +132,12 @@ export default function DashboardPage() {
           const label = start.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
           months.push({ label, start, end });
         }
+        
+        console.log('Date ranges being used:', months.map(m => ({
+          label: m.label,
+          start: m.start.toISOString(),
+          end: m.end.toISOString()
+        })));
 
         const toNumber = (v: any): number => {
           if (v === null || v === undefined) return 0;
@@ -179,14 +185,15 @@ export default function DashboardPage() {
             const isInRange = !isNaN(d.getTime()) && d >= start && d <= end;
             
             // Debug logging for date filtering
-            if (label.includes('Sep') && isInRange) {
-              console.log(`Bike included in ${label}:`, {
+            if (label.includes('Sep')) {
+              console.log(`Bike ${isInRange ? 'INCLUDED' : 'EXCLUDED'} in ${label}:`, {
                 make: b.make,
                 model: b.model,
                 dateSold: b.dateSold,
                 parsedDate: d.toISOString(),
                 rangeStart: start.toISOString(),
-                rangeEnd: end.toISOString()
+                rangeEnd: end.toISOString(),
+                reason: isInRange ? 'In range' : 'Out of range'
               });
             }
             
