@@ -225,6 +225,36 @@ export default function DashboardPage() {
         console.log('Calculated profit data:', profitData);
         setMonthlyProfit(profitData);
         console.log('Monthly Profit Data Set:', profitData);
+        
+        // API call to get August 2025 bikes and their actualProfit values
+        console.log('=== AUGUST 2025 BIKES ACTUAL PROFIT DATA ===');
+        const augustBikes = (data.bikes || []).filter((bike: any) => {
+          const statusStr = String(bike.status || '').trim().toLowerCase();
+          if (statusStr !== 'sold' || !bike.dateSold) return false;
+          const d = new Date(bike.dateSold);
+          if (isNaN(d.getTime())) return false;
+          
+          // Check if bike was sold in August 2025
+          const year = d.getFullYear();
+          const month = d.getMonth(); // 0-based, so August = 7
+          return year === 2025 && month === 7;
+        });
+        
+        console.log('August 2025 Sold Bikes:', augustBikes.map(bike => ({
+          make: bike.make,
+          model: bike.model,
+          year: bike.year,
+          dateSold: bike.dateSold,
+          actualSalePrice: bike.actualSalePrice,
+          actualProfit: bike.actualProfit,
+          vin: bike.vin
+        })));
+        
+        const totalAugustProfit = augustBikes.reduce((sum: number, bike: any) => {
+          return sum + toNumber(bike.actualProfit || 0);
+        }, 0);
+        
+        console.log('Total August 2025 Profit from actualProfit fields:', totalAugustProfit);
       }
     } catch (error) {
       console.error('Failed to fetch inventory count:', error);
