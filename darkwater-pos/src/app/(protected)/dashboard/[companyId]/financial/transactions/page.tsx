@@ -74,7 +74,7 @@ export default function TransactionsPage() {
     description: '',
     // Legacy fields for compatibility
     category: '',
-    paymentMethod: 'Cash',
+    paymentMethod: '',
     reference: '',
     status: 'completed'
   });
@@ -291,7 +291,7 @@ export default function TransactionsPage() {
         description: '',
         // Legacy fields for compatibility
         category: '',
-        paymentMethod: 'Cash',
+        paymentMethod: '',
         reference: '',
         status: 'completed'
       });
@@ -818,30 +818,9 @@ export default function TransactionsPage() {
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
                   Payment Type
                 </label>
-                <input
-                  type="text"
+                <select
                   value={newTransaction.paymentMethod}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                  placeholder="e.g., Cash, Credit Card"
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '0.375rem',
-                    color: 'white',
-                    fontSize: '0.75rem'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Vehicle (VIN)
-                </label>
-                <select
-                  value={newTransaction.vehicle}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, vehicle: e.target.value }))}
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -852,13 +831,41 @@ export default function TransactionsPage() {
                     fontSize: '0.75rem'
                   }}
                 >
-                  <option value="" style={{ background: '#1e293b', color: 'white' }}>Select Vehicle VIN</option>
+                  <option value="" style={{ background: '#1e293b', color: 'white' }}>Select Payment Type</option>
+                  <option value="Chase DC" style={{ background: '#1e293b', color: 'white' }}>Chase DC</option>
+                  <option value="Cash" style={{ background: '#1e293b', color: 'white' }}>Cash</option>
+                  <option value="Check" style={{ background: '#1e293b', color: 'white' }}>Check</option>
+                  <option value="Wire" style={{ background: '#1e293b', color: 'white' }}>Wire</option>
+                </select>
+              </div>
+              
+              <div style={{ position: 'relative' }}>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Vehicle (VIN)
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.vehicle}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, vehicle: e.target.value }))}
+                  placeholder="VIN"
+                  list="vin-suggestions"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+                <datalist id="vin-suggestions">
                   {bikeInventory.map((bike) => (
-                    <option key={bike._id} value={bike.vin} style={{ background: '#1e293b', color: 'white' }}>
+                    <option key={bike._id} value={bike.vin}>
                       {bike.vin} - {bike.year} {bike.make} {bike.model} ({bike.status})
                     </option>
                   ))}
-                </select>
+                </datalist>
               </div>
               
               <div>
