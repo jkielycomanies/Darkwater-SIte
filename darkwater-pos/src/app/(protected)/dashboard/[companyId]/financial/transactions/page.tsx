@@ -27,14 +27,23 @@ interface Company {
 
 interface Transaction {
   _id: string;
-  type: 'income' | 'expense' | 'transfer';
-  category: string;
-  amount: number;
-  description: string;
   date: string;
-  paymentMethod: string;
-  reference: string;
-  status: 'completed' | 'pending' | 'cancelled';
+  amount: number;
+  provider: string;
+  name: string;
+  type: 'income' | 'expense' | 'transfer';
+  vehicle: string;
+  classification: string;
+  purchase: string;
+  movement: string;
+  recurring: boolean;
+  useful: boolean;
+  description: string;
+  // Legacy fields for compatibility
+  category?: string;
+  paymentMethod?: string;
+  reference?: string;
+  status?: 'completed' | 'pending' | 'cancelled';
   companyId: string;
 }
 
@@ -485,27 +494,55 @@ export default function TransactionsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Date</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Type</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Category</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Description</th>
-                  <th style={{ padding: '1rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Amount</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Payment Method</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Status</th>
-                  <th style={{ padding: '1rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.875rem', fontWeight: '500' }}>Reference</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Date</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Amount</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Provider</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Name</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Type</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Vehicle</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Classification</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Purchase</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Movement</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Recurring</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Useful</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Description</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTransactions.map((transaction) => (
                   <tr key={transaction._id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                    <td style={{ padding: '1rem', color: 'white', fontSize: '0.875rem' }}>
+                    {/* Date */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
                       {new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td style={{ padding: '1rem' }}>
+                    
+                    {/* Amount */}
+                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                       <span style={{
-                        padding: '0.25rem 0.75rem',
-                        borderRadius: '9999px',
+                        color: transaction.type === 'income' ? '#22c55e' : '#ef4444',
                         fontSize: '0.75rem',
+                        fontWeight: '600'
+                      }}>
+                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                      </span>
+                    </td>
+                    
+                    {/* Provider */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.provider || '-'}
+                    </td>
+                    
+                    {/* Name */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.name || '-'}
+                    </td>
+                    
+                    {/* Type */}
+                    <td style={{ padding: '0.75rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.625rem',
                         fontWeight: '500',
                         background: getTransactionTypeColor(transaction.type).bg,
                         color: getTransactionTypeColor(transaction.type).color,
@@ -514,40 +551,62 @@ export default function TransactionsPage() {
                         {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem', color: 'white', fontSize: '0.875rem' }}>
-                      {transaction.category}
+                    
+                    {/* Vehicle */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.vehicle || '-'}
                     </td>
-                    <td style={{ padding: '1rem', color: 'white', fontSize: '0.875rem', maxWidth: '200px' }}>
-                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {transaction.description}
-                      </div>
+                    
+                    {/* Classification */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.classification || '-'}
                     </td>
-                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                    
+                    {/* Purchase */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.purchase || '-'}
+                    </td>
+                    
+                    {/* Movement */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.movement || '-'}
+                    </td>
+                    
+                    {/* Recurring */}
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                       <span style={{
-                        color: transaction.type === 'income' ? '#22c55e' : '#ef4444',
-                        fontSize: '0.875rem',
-                        fontWeight: '600'
-                      }}>
-                        {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem', color: 'white', fontSize: '0.875rem' }}>
-                      {transaction.paymentMethod}
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <span style={{
-                        padding: '0.25rem 0.75rem',
+                        padding: '0.25rem 0.5rem',
                         borderRadius: '9999px',
-                        fontSize: '0.75rem',
+                        fontSize: '0.625rem',
                         fontWeight: '500',
-                        background: getStatusColor(transaction.status).bg,
-                        color: getStatusColor(transaction.status).color
+                        background: transaction.recurring ? 'rgba(34, 197, 94, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                        color: transaction.recurring ? '#22c55e' : '#6b7280',
+                        border: `1px solid ${transaction.recurring ? 'rgba(34, 197, 94, 0.2)' : 'rgba(107, 114, 128, 0.2)'}`
                       }}>
-                        {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                        {transaction.recurring ? 'Yes' : 'No'}
                       </span>
                     </td>
-                    <td style={{ padding: '1rem', color: '#94a3b8', fontSize: '0.75rem', fontFamily: 'monospace' }}>
-                      {transaction.reference}
+                    
+                    {/* Useful */}
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.625rem',
+                        fontWeight: '500',
+                        background: transaction.useful ? 'rgba(59, 130, 246, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+                        color: transaction.useful ? '#3b82f6' : '#6b7280',
+                        border: `1px solid ${transaction.useful ? 'rgba(59, 130, 246, 0.2)' : 'rgba(107, 114, 128, 0.2)'}`
+                      }}>
+                        {transaction.useful ? 'Yes' : 'No'}
+                      </span>
+                    </td>
+                    
+                    {/* Description */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem', maxWidth: '150px' }}>
+                      <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {transaction.description || '-'}
+                      </div>
                     </td>
                   </tr>
                 ))}
