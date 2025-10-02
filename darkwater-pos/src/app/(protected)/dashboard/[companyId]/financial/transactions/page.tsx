@@ -59,11 +59,20 @@ export default function TransactionsPage() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTransaction, setNewTransaction] = useState({
-    type: 'expense',
-    category: '',
-    amount: '',
-    description: '',
     date: new Date().toISOString().split('T')[0],
+    amount: '',
+    provider: '',
+    name: '',
+    type: 'expense',
+    vehicle: '',
+    classification: '',
+    purchase: '',
+    movement: '',
+    recurring: false,
+    useful: false,
+    description: '',
+    // Legacy fields for compatibility
+    category: '',
     paymentMethod: 'Cash',
     reference: '',
     status: 'completed'
@@ -218,14 +227,23 @@ export default function TransactionsPage() {
   const netProfit = totalIncome - totalExpenses;
 
   const handleAddTransaction = () => {
-    if (newTransaction.category && newTransaction.amount && newTransaction.description) {
+    if (newTransaction.amount && newTransaction.name && newTransaction.description) {
       const transaction: Transaction = {
         _id: Math.random().toString(36).substr(2, 9),
-        type: newTransaction.type as 'income' | 'expense' | 'transfer',
-        category: newTransaction.category,
-        amount: parseFloat(newTransaction.amount),
-        description: newTransaction.description,
         date: newTransaction.date,
+        amount: parseFloat(newTransaction.amount),
+        provider: newTransaction.provider,
+        name: newTransaction.name,
+        type: newTransaction.type as 'income' | 'expense' | 'transfer',
+        vehicle: newTransaction.vehicle,
+        classification: newTransaction.classification,
+        purchase: newTransaction.purchase,
+        movement: newTransaction.movement,
+        recurring: newTransaction.recurring,
+        useful: newTransaction.useful,
+        description: newTransaction.description,
+        // Legacy fields for compatibility
+        category: newTransaction.category,
         paymentMethod: newTransaction.paymentMethod,
         reference: newTransaction.reference || `REF-${Date.now()}`,
         status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
@@ -235,11 +253,20 @@ export default function TransactionsPage() {
       setTransactions(prev => [transaction, ...prev]);
       setShowAddModal(false);
       setNewTransaction({
-        type: 'expense',
-        category: '',
-        amount: '',
-        description: '',
         date: new Date().toISOString().split('T')[0],
+        amount: '',
+        provider: '',
+        name: '',
+        type: 'expense',
+        vehicle: '',
+        classification: '',
+        purchase: '',
+        movement: '',
+        recurring: false,
+        useful: false,
+        description: '',
+        // Legacy fields for compatibility
+        category: '',
         paymentMethod: 'Cash',
         reference: '',
         status: 'completed'
@@ -673,41 +700,16 @@ export default function TransactionsPage() {
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem' }}>
-              {/* Transaction Type */}
+            {/* Row 1: Date, Amount, Provider, Name */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Type *
-                </label>
-                <select
-                  value={newTransaction.type}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, type: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '0.375rem',
-                    color: 'white',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  <option value="income" style={{ background: '#1e293b', color: 'white' }}>Income</option>
-                  <option value="expense" style={{ background: '#1e293b', color: 'white' }}>Expense</option>
-                  <option value="transfer" style={{ background: '#1e293b', color: 'white' }}>Transfer</option>
-                </select>
-              </div>
-
-              {/* Category */}
-              <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Category *
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Date *
                 </label>
                 <input
-                  type="text"
-                  value={newTransaction.category}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, category: e.target.value }))}
-                  placeholder="e.g., Sales, Parts, Service"
+                  type="date"
+                  value={newTransaction.date}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -715,14 +717,13 @@ export default function TransactionsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '0.375rem',
                     color: 'white',
-                    fontSize: '0.875rem'
+                    fontSize: '0.75rem'
                   }}
                 />
               </div>
-
-              {/* Amount */}
+              
               <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
                   Amount *
                 </label>
                 <input
@@ -739,93 +740,20 @@ export default function TransactionsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '0.375rem',
                     color: 'white',
-                    fontSize: '0.875rem'
+                    fontSize: '0.75rem'
                   }}
                 />
               </div>
-
-              {/* Date */}
+              
               <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Date
-                </label>
-                <input
-                  type="date"
-                  value={newTransaction.date}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, date: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '0.375rem',
-                    color: 'white',
-                    fontSize: '0.875rem'
-                  }}
-                />
-              </div>
-
-              {/* Payment Method */}
-              <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Payment Method
-                </label>
-                <select
-                  value={newTransaction.paymentMethod}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, paymentMethod: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '0.375rem',
-                    color: 'white',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  <option value="Cash" style={{ background: '#1e293b', color: 'white' }}>Cash</option>
-                  <option value="Credit Card" style={{ background: '#1e293b', color: 'white' }}>Credit Card</option>
-                  <option value="Debit Card" style={{ background: '#1e293b', color: 'white' }}>Debit Card</option>
-                  <option value="Bank Transfer" style={{ background: '#1e293b', color: 'white' }}>Bank Transfer</option>
-                  <option value="Financing" style={{ background: '#1e293b', color: 'white' }}>Financing</option>
-                  <option value="Check" style={{ background: '#1e293b', color: 'white' }}>Check</option>
-                </select>
-              </div>
-
-              {/* Status */}
-              <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Status
-                </label>
-                <select
-                  value={newTransaction.status}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, status: e.target.value }))}
-                  style={{
-                    width: '100%',
-                    padding: '0.5rem',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '0.375rem',
-                    color: 'white',
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  <option value="completed" style={{ background: '#1e293b', color: 'white' }}>Completed</option>
-                  <option value="pending" style={{ background: '#1e293b', color: 'white' }}>Pending</option>
-                  <option value="cancelled" style={{ background: '#1e293b', color: 'white' }}>Cancelled</option>
-                </select>
-              </div>
-
-              {/* Reference */}
-              <div>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Reference
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Provider
                 </label>
                 <input
                   type="text"
-                  value={newTransaction.reference}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, reference: e.target.value }))}
-                  placeholder="e.g., SALE-001, EXP-001"
+                  value={newTransaction.provider}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, provider: e.target.value }))}
+                  placeholder="e.g., Bank, Vendor"
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -833,21 +761,198 @@ export default function TransactionsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '0.375rem',
                     color: 'white',
-                    fontSize: '0.875rem'
+                    fontSize: '0.75rem'
                   }}
                 />
               </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Name *
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.name}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Transaction name"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </div>
+            </div>
 
-              {/* Description */}
-              <div style={{ gridColumn: 'span 2' }}>
-                <label style={{ color: '#e2e8f0', fontSize: '0.875rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+            {/* Row 2: Type, Vehicle, Classification, Purchase */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Type *
+                </label>
+                <select
+                  value={newTransaction.type}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, type: e.target.value }))}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  <option value="income" style={{ background: '#1e293b', color: 'white' }}>Income</option>
+                  <option value="expense" style={{ background: '#1e293b', color: 'white' }}>Expense</option>
+                  <option value="transfer" style={{ background: '#1e293b', color: 'white' }}>Transfer</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Vehicle
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.vehicle}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, vehicle: e.target.value }))}
+                  placeholder="Vehicle info"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Classification
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.classification}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, classification: e.target.value }))}
+                  placeholder="Classification"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Purchase
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.purchase}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, purchase: e.target.value }))}
+                  placeholder="Purchase info"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Movement, Recurring, Useful, Description */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: '0.75rem', marginBottom: '1rem' }}>
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Movement
+                </label>
+                <input
+                  type="text"
+                  value={newTransaction.movement}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, movement: e.target.value }))}
+                  placeholder="Movement"
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                />
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Recurring
+                </label>
+                <select
+                  value={newTransaction.recurring.toString()}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, recurring: e.target.value === 'true' }))}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  <option value="false" style={{ background: '#1e293b', color: 'white' }}>No</option>
+                  <option value="true" style={{ background: '#1e293b', color: 'white' }}>Yes</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
+                  Useful
+                </label>
+                <select
+                  value={newTransaction.useful.toString()}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, useful: e.target.value === 'true' }))}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    borderRadius: '0.375rem',
+                    color: 'white',
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  <option value="false" style={{ background: '#1e293b', color: 'white' }}>No</option>
+                  <option value="true" style={{ background: '#1e293b', color: 'white' }}>Yes</option>
+                </select>
+              </div>
+              
+              <div>
+                <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
                   Description *
                 </label>
                 <textarea
                   value={newTransaction.description}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe the transaction..."
-                  rows={3}
+                  rows={2}
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -855,7 +960,7 @@ export default function TransactionsPage() {
                     border: '1px solid rgba(255, 255, 255, 0.2)',
                     borderRadius: '0.375rem',
                     color: 'white',
-                    fontSize: '0.875rem',
+                    fontSize: '0.75rem',
                     resize: 'vertical'
                   }}
                 />
@@ -881,17 +986,17 @@ export default function TransactionsPage() {
               </button>
               <button
                 onClick={handleAddTransaction}
-                disabled={!newTransaction.category || !newTransaction.amount || !newTransaction.description}
+                disabled={!newTransaction.amount || !newTransaction.name || !newTransaction.description}
                 style={{
                   padding: '0.5rem 1.25rem',
-                  background: (!newTransaction.category || !newTransaction.amount || !newTransaction.description)
+                  background: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
                     ? 'rgba(107, 114, 128, 0.3)'
                     : 'rgba(139, 92, 246, 0.8)',
                   border: '1px solid rgba(139, 92, 246, 0.5)',
                   borderRadius: '0.375rem',
                   color: 'white',
                   fontSize: '0.875rem',
-                  cursor: (!newTransaction.category || !newTransaction.amount || !newTransaction.description)
+                  cursor: (!newTransaction.amount || !newTransaction.name || !newTransaction.description)
                     ? 'not-allowed'
                     : 'pointer',
                   transition: 'all 0.3s ease'
