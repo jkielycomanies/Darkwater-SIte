@@ -123,10 +123,11 @@ export default function DashboardPage() {
         }).length;
         setSoldThisMonth(soldCount);
 
-        // Build last 6 months revenue/cost/profit
+        // Build last 6 months revenue/cost/profit - adjust to 2025 where data exists
         const months: Array<{ label: string; start: Date; end: Date }> = [];
+        const dataYear = 2025; // Use 2025 since that's where the bike data is
         for (let i = 5; i >= 0; i--) {
-          const d = new Date(y, m - i, 1);
+          const d = new Date(dataYear, m - i, 1);
           const start = new Date(d.getFullYear(), d.getMonth(), 1);
           const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
           const label = start.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
