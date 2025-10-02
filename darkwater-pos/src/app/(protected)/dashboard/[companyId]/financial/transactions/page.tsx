@@ -836,11 +836,9 @@ export default function TransactionsPage() {
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
                   Classification
                 </label>
-                <input
-                  type="text"
+                <select
                   value={newTransaction.classification}
                   onChange={(e) => setNewTransaction(prev => ({ ...prev, classification: e.target.value }))}
-                  placeholder="Classification"
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -850,7 +848,13 @@ export default function TransactionsPage() {
                     color: 'white',
                     fontSize: '0.75rem'
                   }}
-                />
+                >
+                  <option value="" style={{ background: '#1e293b', color: 'white' }}>Select Classification</option>
+                  <option value="Operating" style={{ background: '#1e293b', color: 'white' }}>Operating</option>
+                  <option value="Opening" style={{ background: '#1e293b', color: 'white' }}>Opening</option>
+                  <option value="Cash Deposit" style={{ background: '#1e293b', color: 'white' }}>Cash Deposit</option>
+                  <option value="Equipment" style={{ background: '#1e293b', color: 'white' }}>Equipment</option>
+                </select>
               </div>
               
               <div>
