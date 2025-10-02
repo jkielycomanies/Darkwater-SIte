@@ -84,7 +84,7 @@ export default function DashboardPage() {
 
   const fetchInventoryCount = async (companyId: string) => {
     try {
-      const response = await fetch(`/api/companies/${companyId}/inventory/bikes`);
+      const response = await fetch(`/api/companies/${companyId}/inventory/bikes?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         // Count only active bikes (not sold)
@@ -202,6 +202,7 @@ export default function DashboardPage() {
           return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
         });
         setMonthlyProfit(profitData);
+        console.log('Monthly Profit Data Set:', profitData);
       }
     } catch (error) {
       console.error('Failed to fetch inventory count:', error);
