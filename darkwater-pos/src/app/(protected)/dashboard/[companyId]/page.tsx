@@ -161,7 +161,7 @@ export default function DashboardPage() {
           return parts + services + transport + acquisition;
         };
 
-        // Calculate monthly revenue data (current month first)
+        // Calculate monthly revenue data (current month first) - using actualSalePrice
         const revenueData = months.reverse().map(({ label, start, end }) => {
           const soldInMonth = (data.bikes || []).filter((b: any) => {
             const statusStr = String(b.status || '').trim().toLowerCase();
@@ -191,11 +191,14 @@ export default function DashboardPage() {
             return !isNaN(d.getTime()) && d >= start && d <= end;
           });
           
-          // Use the stored actualProfit field for each bike (like on bike details page)
+          // Use ONLY the stored actualProfit field - no calculations
           const amount = soldInMonth.reduce((sum: number, bike: any) => {
             const storedProfit = toNumber(bike.actualProfit || 0);
+            console.log(`${label} - ${bike.make} ${bike.model}: actualProfit = ${bike.actualProfit}, converted = ${storedProfit}`);
             return sum + storedProfit;
           }, 0);
+          
+          console.log(`${label} FINAL PROFIT SUM: ${amount}`);
           
           // Detailed logging for August to see individual bike profits
           if (label.includes('Aug')) {
