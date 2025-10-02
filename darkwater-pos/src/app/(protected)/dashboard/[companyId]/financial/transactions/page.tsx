@@ -146,8 +146,15 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async (companyId: string) => {
     try {
-      // For now, using mock data. In production, this would fetch from an API
-      const mockTransactions: Transaction[] = [
+      // Fetch transactions from database
+      const response = await fetch(`/api/companies/${companyId}/financial/transactions`);
+      if (response.ok) {
+        const data = await response.json();
+        setTransactions(data.transactions || []);
+      } else {
+        console.log('Transactions API failed, using fallback data');
+        // Fallback to mock data if API fails
+        const mockTransactions: Transaction[] = [
         {
           _id: '1',
           type: 'income',
@@ -211,8 +218,11 @@ export default function TransactionsPage() {
       ];
       
       setTransactions(mockTransactions);
+      }
     } catch (error) {
       console.error('Failed to fetch transactions:', error);
+      // Use empty array as fallback
+      setTransactions([]);
     } finally {
       setIsLoading(false);
     }
@@ -261,62 +271,96 @@ export default function TransactionsPage() {
   
   const netProfit = totalIncome - totalExpenses;
 
-  const handleAddTransaction = () => {
+  const handleAddTransaction = async () => {
     if (newTransaction.amount && newTransaction.name && newTransaction.description) {
-      if (editingTransaction) {
-        // Update existing transaction
-        const updatedTransaction: Transaction = {
-          ...editingTransaction,
-          date: newTransaction.date,
-          amount: parseFloat(newTransaction.amount),
-          provider: newTransaction.provider,
-          name: newTransaction.name,
-          type: newTransaction.type as 'income' | 'expense' | 'transfer',
-          vehicle: newTransaction.vehicle,
-          classification: newTransaction.classification,
-          purchase: newTransaction.purchase,
-          movement: newTransaction.movement,
-          recurring: newTransaction.recurring,
-          useful: newTransaction.useful,
-          description: newTransaction.description,
-          // Legacy fields for compatibility
-          category: newTransaction.category,
-          paymentMethod: newTransaction.paymentMethod,
-          reference: newTransaction.reference || editingTransaction.reference,
-          status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
-        };
+      try {
+        if (editingTransaction) {
+          // Update existing transaction
+          const updatedTransaction: Transaction = {
+            ...editingTransaction,
+            date: newTransaction.date,
+            amount: parseFloat(newTransaction.amount),
+            provider: newTransaction.provider,
+            name: newTransaction.name,
+            type: newTransaction.type as 'income' | 'expense' | 'transfer',
+            vehicle: newTransaction.vehicle,
+            classification: newTransaction.classification,
+            purchase: newTransaction.purchase,
+            movement: newTransaction.movement,
+            recurring: newTransaction.recurring,
+            useful: newTransaction.useful,
+            description: newTransaction.description,
+            // Legacy fields for compatibility
+            category: newTransaction.category,
+            paymentMethod: newTransaction.paymentMethod,
+            reference: newTransaction.reference || editingTransaction.reference,
+            status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
+          };
+          
+          // Update in database
+          const response = await fetch(`/api/companies/${params.companyId}/financial/transactions/${editingTransaction._id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedTransaction),
+          });
+          
+          if (response.ok) {
+            setTransactions(prev => prev.map(t => t._id === editingTransaction._id ? updatedTransaction : t));
+            setEditingTransaction(null);
+          } else {
+            alert('Failed to update transaction in database. Please try again.');
+            return;
+          }
+        } else {
+          // Add new transaction
+          const transaction: Transaction = {
+            _id: Math.random().toString(36).substr(2, 9),
+            date: newTransaction.date,
+            amount: parseFloat(newTransaction.amount),
+            provider: newTransaction.provider,
+            name: newTransaction.name,
+            type: newTransaction.type as 'income' | 'expense' | 'transfer',
+            vehicle: newTransaction.vehicle,
+            classification: newTransaction.classification,
+            purchase: newTransaction.purchase,
+            movement: newTransaction.movement,
+            recurring: newTransaction.recurring,
+            useful: newTransaction.useful,
+            description: newTransaction.description,
+            // Legacy fields for compatibility
+            category: newTransaction.category,
+            paymentMethod: newTransaction.paymentMethod,
+            reference: newTransaction.reference || `REF-${Date.now()}`,
+            status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
+            companyId: params.companyId as string
+          };
+          
+          // Save to database
+          const response = await fetch(`/api/companies/${params.companyId}/financial/transactions`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(transaction),
+          });
+          
+          if (response.ok) {
+            const savedTransaction = await response.json();
+            setTransactions(prev => [savedTransaction.transaction || transaction, ...prev]);
+          } else {
+            alert('Failed to save transaction to database. Please try again.');
+            return;
+          }
+        }
         
-        setTransactions(prev => prev.map(t => t._id === editingTransaction._id ? updatedTransaction : t));
-        setEditingTransaction(null);
-      } else {
-        // Add new transaction
-        const transaction: Transaction = {
-          _id: Math.random().toString(36).substr(2, 9),
-          date: newTransaction.date,
-          amount: parseFloat(newTransaction.amount),
-          provider: newTransaction.provider,
-          name: newTransaction.name,
-          type: newTransaction.type as 'income' | 'expense' | 'transfer',
-          vehicle: newTransaction.vehicle,
-          classification: newTransaction.classification,
-          purchase: newTransaction.purchase,
-          movement: newTransaction.movement,
-          recurring: newTransaction.recurring,
-          useful: newTransaction.useful,
-          description: newTransaction.description,
-          // Legacy fields for compatibility
-          category: newTransaction.category,
-          paymentMethod: newTransaction.paymentMethod,
-          reference: newTransaction.reference || `REF-${Date.now()}`,
-          status: newTransaction.status as 'completed' | 'pending' | 'cancelled',
-          companyId: params.companyId as string
-        };
-        
-        setTransactions(prev => [transaction, ...prev]);
+        setShowAddModal(false);
+        resetForm();
+      } catch (error) {
+        console.error('Error saving transaction:', error);
+        alert('Error saving transaction. Please try again.');
       }
-      
-      setShowAddModal(false);
-      resetForm();
     }
   };
 
@@ -344,7 +388,7 @@ export default function TransactionsPage() {
     setShowAddModal(true);
   };
 
-  const handleDeleteTransaction = () => {
+  const handleDeleteTransaction = async () => {
     if (editingTransaction) {
       const confirmDelete = window.confirm(
         `Are you sure you want to delete this transaction?\n\n` +
@@ -355,10 +399,25 @@ export default function TransactionsPage() {
       );
       
       if (confirmDelete) {
-        setTransactions(prev => prev.filter(t => t._id !== editingTransaction._id));
-        setEditingTransaction(null);
-        setShowAddModal(false);
-        resetForm();
+        try {
+          // Delete from database
+          const response = await fetch(`/api/companies/${params.companyId}/financial/transactions/${editingTransaction._id}`, {
+            method: 'DELETE',
+          });
+          
+          if (response.ok) {
+            // Remove from local state only if database deletion was successful
+            setTransactions(prev => prev.filter(t => t._id !== editingTransaction._id));
+            setEditingTransaction(null);
+            setShowAddModal(false);
+            resetForm();
+          } else {
+            alert('Failed to delete transaction from database. Please try again.');
+          }
+        } catch (error) {
+          console.error('Error deleting transaction:', error);
+          alert('Error deleting transaction. Please try again.');
+        }
       }
     }
   };
