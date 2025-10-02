@@ -346,10 +346,20 @@ export default function TransactionsPage() {
 
   const handleDeleteTransaction = () => {
     if (editingTransaction) {
-      setTransactions(prev => prev.filter(t => t._id !== editingTransaction._id));
-      setEditingTransaction(null);
-      setShowAddModal(false);
-      resetForm();
+      const confirmDelete = window.confirm(
+        `Are you sure you want to delete this transaction?\n\n` +
+        `Date: ${new Date(editingTransaction.date).toLocaleDateString()}\n` +
+        `Amount: $${editingTransaction.amount.toLocaleString()}\n` +
+        `Description: ${editingTransaction.description}\n\n` +
+        `This action cannot be undone.`
+      );
+      
+      if (confirmDelete) {
+        setTransactions(prev => prev.filter(t => t._id !== editingTransaction._id));
+        setEditingTransaction(null);
+        setShowAddModal(false);
+        resetForm();
+      }
     }
   };
 
