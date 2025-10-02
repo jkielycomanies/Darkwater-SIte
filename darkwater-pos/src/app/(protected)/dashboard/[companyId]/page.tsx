@@ -129,7 +129,7 @@ export default function DashboardPage() {
           const d = new Date(y, m - i, 1);
           const start = new Date(d.getFullYear(), d.getMonth(), 1);
           const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-          const label = start.toLocaleDateString(undefined, { month: 'short' });
+          const label = start.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
           months.push({ label, start, end });
         }
 
@@ -176,7 +176,21 @@ export default function DashboardPage() {
             const statusStr = String(b.status || '').trim().toLowerCase();
             if (statusStr !== 'sold' || !b.dateSold) return false;
             const d = new Date(b.dateSold);
-            return !isNaN(d.getTime()) && d >= start && d <= end;
+            const isInRange = !isNaN(d.getTime()) && d >= start && d <= end;
+            
+            // Debug logging for date filtering
+            if (label.includes('Sep') && isInRange) {
+              console.log(`Bike included in ${label}:`, {
+                make: b.make,
+                model: b.model,
+                dateSold: b.dateSold,
+                parsedDate: d.toISOString(),
+                rangeStart: start.toISOString(),
+                rangeEnd: end.toISOString()
+              });
+            }
+            
+            return isInRange;
           });
           
           // Calculate profit for all bikes sold in this month (actualSalePrice - total costs)
