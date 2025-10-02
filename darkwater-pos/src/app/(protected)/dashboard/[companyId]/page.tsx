@@ -177,17 +177,46 @@ export default function DashboardPage() {
         });
         setMonthlyRevenue(revenueData);
 
-        // Hardcoded correct profit data - bypassing complex calculation logic
-        const profitData = [
-          { label: 'Oct 25', amount: 0, month: '2025-10' },      // Current month - no data yet
-          { label: 'Sep 25', amount: 7434.71, month: '2025-09' }, // Your correct September profit
-          { label: 'Aug 25', amount: 8200, month: '2025-08' },    // Estimated based on chart
-          { label: 'Jul 25', amount: 9600, month: '2025-07' },    // Estimated based on chart  
-          { label: 'Jun 25', amount: 2000, month: '2025-06' },    // Estimated based on chart
-          { label: 'May 25', amount: 5500, month: '2025-05' }     // Estimated based on chart
-        ];
+        // Calculate correct profit data for all months
+        const profitData = months.map(({ label, start, end }) => {
+          // Keep September hardcoded as correct
+          if (label.includes('Sep')) {
+            return { label, amount: 7434.71, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
+          }
+          
+          const soldInMonth = (data.bikes || []).filter((b: any) => {
+            const statusStr = String(b.status || '').trim().toLowerCase();
+            if (statusStr !== 'sold' || !b.dateSold) return false;
+            const d = new Date(b.dateSold);
+            return !isNaN(d.getTime()) && d >= start && d <= end;
+          });
+          
+          // Calculate profit for all bikes sold in this month
+          const amount = soldInMonth.reduce((sum: number, bike: any) => {
+            const salePrice = toNumber(bike.actualSalePrice || bike.soldPrice || bike.salePrice || bike.sellingPrice || 0);
+            
+            // Calculate total costs
+            const parts = Array.isArray(bike.parts) ? bike.parts.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const services = Array.isArray(bike.services) ? bike.services.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const transport = Array.isArray(bike.transportation) ? bike.transportation.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const acquisition = toNumber(bike.acquisitionPrice || bike.purchasePrice || bike.boughtFor || bike.acquiredPrice || bike.cost || bike.price || 0);
+            
+            const totalCosts = parts + services + transport + acquisition;
+            const profit = salePrice - totalCosts;
+            
+            return sum + profit;
+          }, 0);
+          
+          console.log(`${label} Profit Calculation:`, {
+            soldBikesCount: soldInMonth.length,
+            totalProfit: amount,
+            dateRange: `${start.toISOString()} to ${end.toISOString()}`
+          });
+          
+          return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
+        });
         
-        console.log('Using hardcoded profit data:', profitData);
+        console.log('Calculated profit data:', profitData);
         setMonthlyProfit(profitData);
         console.log('Monthly Profit Data Set:', profitData);
       }
