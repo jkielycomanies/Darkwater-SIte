@@ -66,7 +66,7 @@ export default function TransactionsPage() {
     name: '',
     type: 'expense',
     vehicle: '',
-    classification: '',
+    classification: 'Operating',
     purchase: '',
     movement: '',
     recurring: false,
@@ -74,7 +74,7 @@ export default function TransactionsPage() {
     description: '',
     // Legacy fields for compatibility
     category: '',
-    paymentMethod: '',
+    paymentMethod: 'Chase DC',
     reference: '',
     status: 'completed'
   });
@@ -283,7 +283,7 @@ export default function TransactionsPage() {
         name: '',
         type: 'expense',
         vehicle: '',
-        classification: '',
+        classification: 'Operating',
         purchase: '',
         movement: '',
         recurring: false,
@@ -291,7 +291,7 @@ export default function TransactionsPage() {
         description: '',
         // Legacy fields for compatibility
         category: '',
-        paymentMethod: '',
+        paymentMethod: 'Chase DC',
         reference: '',
         status: 'completed'
       });
