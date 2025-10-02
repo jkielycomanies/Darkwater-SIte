@@ -525,7 +525,7 @@ export default function TransactionsPage() {
                   <th style={{ padding: '0.75rem', textAlign: 'right', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Amount</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Provider</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Name</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Type</th>
+                  <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Payment Type</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Vehicle</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Classification</th>
                   <th style={{ padding: '0.75rem', textAlign: 'left', color: '#94a3b8', fontSize: '0.75rem', fontWeight: '500' }}>Purchase</th>
@@ -792,7 +792,7 @@ export default function TransactionsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Type *
+                  Payment Type *
                 </label>
                 <select
                   value={newTransaction.type}
