@@ -179,8 +179,25 @@ export default function DashboardPage() {
             return !isNaN(d.getTime()) && d >= start && d <= end;
           });
           
-          const amount = soldInMonth.reduce((s: number, b: any) => 
-            s + toNumber(b.actualProfit || 0), 0);
+          // Sum actualProfit for all bikes sold in this month
+          const amount = soldInMonth.reduce((sum: number, bike: any) => {
+            const profit = toNumber(bike.actualProfit || 0);
+            return sum + profit;
+          }, 0);
+          
+          // Debug logging for profit calculation
+          if (label === 'Oct' || label === 'Sep') {
+            console.log(`${label} Profit Calculation:`, {
+              soldBikesCount: soldInMonth.length,
+              totalProfit: amount,
+              bikes: soldInMonth.map(b => ({
+                make: b.make,
+                model: b.model,
+                actualProfit: b.actualProfit,
+                dateSold: b.dateSold
+              }))
+            });
+          }
           
           return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
         });
