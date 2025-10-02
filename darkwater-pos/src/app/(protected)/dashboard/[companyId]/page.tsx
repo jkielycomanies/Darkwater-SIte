@@ -207,6 +207,34 @@ export default function DashboardPage() {
             return sum + profit;
           }, 0);
           
+          // Detailed logging for August to see individual bike profits
+          if (label.includes('Aug')) {
+            console.log(`${label} Individual Bike Profits:`, soldInMonth.map(bike => {
+              const salePrice = toNumber(bike.actualSalePrice || bike.soldPrice || bike.salePrice || bike.sellingPrice || 0);
+              const parts = Array.isArray(bike.parts) ? bike.parts.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+              const services = Array.isArray(bike.services) ? bike.services.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+              const transport = Array.isArray(bike.transportation) ? bike.transportation.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+              const acquisition = toNumber(bike.acquisitionPrice || bike.purchasePrice || bike.boughtFor || bike.acquiredPrice || bike.cost || bike.price || 0);
+              const totalCosts = parts + services + transport + acquisition;
+              const profit = salePrice - totalCosts;
+              
+              return {
+                make: bike.make,
+                model: bike.model,
+                dateSold: bike.dateSold,
+                salePrice: salePrice,
+                costs: {
+                  parts: parts,
+                  services: services,
+                  transport: transport,
+                  acquisition: acquisition,
+                  total: totalCosts
+                },
+                profit: profit
+              };
+            }));
+          }
+          
           console.log(`${label} Profit Calculation:`, {
             soldBikesCount: soldInMonth.length,
             totalProfit: amount,
