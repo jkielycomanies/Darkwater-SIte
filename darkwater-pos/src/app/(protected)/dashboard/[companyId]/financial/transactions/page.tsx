@@ -564,19 +564,9 @@ export default function TransactionsPage() {
                       {transaction.name || '-'}
                     </td>
                     
-                    {/* Type */}
-                    <td style={{ padding: '0.75rem' }}>
-                      <span style={{
-                        padding: '0.25rem 0.5rem',
-                        borderRadius: '9999px',
-                        fontSize: '0.625rem',
-                        fontWeight: '500',
-                        background: getTransactionTypeColor(transaction.type).bg,
-                        color: getTransactionTypeColor(transaction.type).color,
-                        border: `1px solid ${getTransactionTypeColor(transaction.type).border}`
-                      }}>
-                        {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
-                      </span>
+                    {/* Payment Type */}
+                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
+                      {transaction.paymentMethod || '-'}
                     </td>
                     
                     {/* Vehicle */}
@@ -595,8 +585,18 @@ export default function TransactionsPage() {
                     </td>
                     
                     {/* Movement */}
-                    <td style={{ padding: '0.75rem', color: 'white', fontSize: '0.75rem' }}>
-                      {transaction.movement || '-'}
+                    <td style={{ padding: '0.75rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.5rem',
+                        borderRadius: '9999px',
+                        fontSize: '0.625rem',
+                        fontWeight: '500',
+                        background: getTransactionTypeColor(transaction.type).bg,
+                        color: getTransactionTypeColor(transaction.type).color,
+                        border: `1px solid ${getTransactionTypeColor(transaction.type).border}`
+                      }}>
+                        {transaction.type.charAt(0).toUpperCase() + transaction.type.slice(1)}
+                      </span>
                     </td>
                     
                     {/* Recurring */}
@@ -792,11 +792,13 @@ export default function TransactionsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Payment Type *
+                  Payment Type
                 </label>
-                <select
-                  value={newTransaction.type}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, type: e.target.value }))}
+                <input
+                  type="text"
+                  value={newTransaction.paymentMethod}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, paymentMethod: e.target.value }))}
+                  placeholder="e.g., Cash, Credit Card"
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -806,11 +808,7 @@ export default function TransactionsPage() {
                     color: 'white',
                     fontSize: '0.75rem'
                   }}
-                >
-                  <option value="income" style={{ background: '#1e293b', color: 'white' }}>Income</option>
-                  <option value="expense" style={{ background: '#1e293b', color: 'white' }}>Expense</option>
-                  <option value="transfer" style={{ background: '#1e293b', color: 'white' }}>Transfer</option>
-                </select>
+                />
               </div>
               
               <div>
@@ -881,13 +879,11 @@ export default function TransactionsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 2fr', gap: '0.75rem', marginBottom: '1rem' }}>
               <div>
                 <label style={{ color: '#e2e8f0', fontSize: '0.75rem', fontWeight: '500', marginBottom: '0.5rem', display: 'block' }}>
-                  Movement
+                  Movement *
                 </label>
-                <input
-                  type="text"
-                  value={newTransaction.movement}
-                  onChange={(e) => setNewTransaction(prev => ({ ...prev, movement: e.target.value }))}
-                  placeholder="Movement"
+                <select
+                  value={newTransaction.type}
+                  onChange={(e) => setNewTransaction(prev => ({ ...prev, type: e.target.value }))}
                   style={{
                     width: '100%',
                     padding: '0.5rem',
@@ -897,7 +893,11 @@ export default function TransactionsPage() {
                     color: 'white',
                     fontSize: '0.75rem'
                   }}
-                />
+                >
+                  <option value="income" style={{ background: '#1e293b', color: 'white' }}>Income</option>
+                  <option value="expense" style={{ background: '#1e293b', color: 'white' }}>Expense</option>
+                  <option value="transfer" style={{ background: '#1e293b', color: 'white' }}>Transfer</option>
+                </select>
               </div>
               
               <div>
