@@ -179,9 +179,19 @@ export default function DashboardPage() {
             return !isNaN(d.getTime()) && d >= start && d <= end;
           });
           
-          // Sum actualProfit for all bikes sold in this month
+          // Calculate profit for all bikes sold in this month (actualSalePrice - total costs)
           const amount = soldInMonth.reduce((sum: number, bike: any) => {
-            const profit = toNumber(bike.actualProfit || 0);
+            const salePrice = toNumber(bike.actualSalePrice || bike.soldPrice || bike.salePrice || bike.sellingPrice || 0);
+            
+            // Calculate total costs (same logic as the API)
+            const parts = Array.isArray(bike.parts) ? bike.parts.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const services = Array.isArray(bike.services) ? bike.services.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const transport = Array.isArray(bike.transportation) ? bike.transportation.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+            const acquisition = toNumber(bike.acquisitionPrice || bike.purchasePrice || bike.boughtFor || bike.acquiredPrice || bike.cost || bike.price || 0);
+            
+            const totalCosts = parts + services + transport + acquisition;
+            const profit = salePrice - totalCosts;
+            
             return sum + profit;
           }, 0);
           
@@ -190,12 +200,25 @@ export default function DashboardPage() {
             console.log(`${label} Profit Calculation:`, {
               soldBikesCount: soldInMonth.length,
               totalProfit: amount,
-              bikes: soldInMonth.map(b => ({
-                make: b.make,
-                model: b.model,
-                actualProfit: b.actualProfit,
-                dateSold: b.dateSold
-              }))
+              bikes: soldInMonth.map(b => {
+                const salePrice = toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0);
+                const parts = Array.isArray(b.parts) ? b.parts.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+                const services = Array.isArray(b.services) ? b.services.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+                const transport = Array.isArray(b.transportation) ? b.transportation.reduce((s: number, p: any) => s + toNumber(p?.cost || 0), 0) : 0;
+                const acquisition = toNumber(b.acquisitionPrice || b.purchasePrice || b.boughtFor || b.acquiredPrice || b.cost || b.price || 0);
+                const totalCosts = parts + services + transport + acquisition;
+                const calculatedProfit = salePrice - totalCosts;
+                
+                return {
+                  make: b.make,
+                  model: b.model,
+                  salePrice,
+                  totalCosts,
+                  calculatedProfit,
+                  storedActualProfit: b.actualProfit,
+                  dateSold: b.dateSold
+                };
+              })
             });
           }
           
