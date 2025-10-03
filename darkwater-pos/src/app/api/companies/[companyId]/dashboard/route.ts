@@ -182,9 +182,31 @@ export async function GET(
     return response;
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
+    
+    // Provide more specific error information
+    let errorMessage = 'Failed to fetch dashboard data';
+    let statusCode = 500;
+    
+    if (error instanceof Error) {
+      if (error.message.includes('MongoNetworkError') || error.message.includes('connection')) {
+        errorMessage = 'Database connection failed. Please check MongoDB Atlas settings.';
+        statusCode = 503; // Service Unavailable
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Database query timeout. Please try again.';
+        statusCode = 504; // Gateway Timeout
+      } else if (error.message.includes('unauthorized') || error.message.includes('authentication')) {
+        errorMessage = 'Database authentication failed. Please check credentials.';
+        statusCode = 401; // Unauthorized
+      }
+    }
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to fetch dashboard data' },
-      { status: 500 }
+      { 
+        success: false, 
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error : undefined
+      },
+      { status: statusCode }
     );
   }
 }

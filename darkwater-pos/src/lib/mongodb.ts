@@ -9,16 +9,60 @@ if (!MONGODB_URI) {
 
 const uri = MONGODB_URI;
 const options = {
-  maxPoolSize: 10,
-  serverSelectionTimeoutMS: 30000,
-  socketTimeoutMS: 45000,
-  connectTimeoutMS: 30000,
+  // Increased connection pool for better performance
+  maxPoolSize: 50,
+  minPoolSize: 5,
+  
+  // More aggressive timeouts for better reliability
+  serverSelectionTimeoutMS: 10000,
+  socketTimeoutMS: 30000,
+  connectTimeoutMS: 10000,
+  
+  // Connection retry settings
   retryWrites: true,
-  w: 'majority' as const
+  retryReads: true,
+  maxIdleTimeMS: 30000,
+  
+  // Write concern
+  w: 'majority' as const,
+  
+  // Heartbeat settings
+  heartbeatFrequencyMS: 10000,
+  
+  // Buffer settings
+  bufferMaxEntries: 0,
+  bufferCommands: false,
 };
 
-let client;
+let client: MongoClient;
 let clientPromise: Promise<MongoClient>;
+
+// Connection retry function
+const connectWithRetry = async (uri: string, options: any, retries = 3): Promise<MongoClient> => {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const client = new MongoClient(uri, options);
+      await client.connect();
+      
+      // Test the connection
+      await client.db('admin').admin().ping();
+      
+      console.log('✅ MongoDB connected successfully');
+      return client;
+    } catch (error) {
+      console.error(`❌ MongoDB connection attempt ${i + 1} failed:`, error);
+      
+      if (i === retries - 1) {
+        console.error('🚨 All MongoDB connection attempts failed');
+        throw error;
+      }
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    }
+  }
+  throw new Error('Failed to connect to MongoDB after all retries');
+};
 
 if (process.env.NODE_ENV === 'development') {
   // In development mode, use a global variable so that the value
@@ -28,14 +72,12 @@ if (process.env.NODE_ENV === 'development') {
   };
 
   if (!globalWithMongo._mongoClientPromise) {
-    client = new MongoClient(uri, options);
-    globalWithMongo._mongoClientPromise = client.connect();
+    globalWithMongo._mongoClientPromise = connectWithRetry(uri, options);
   }
   clientPromise = globalWithMongo._mongoClientPromise;
 } else {
   // In production mode, it's best to not use a global variable.
-  client = new MongoClient(uri, options);
-  clientPromise = client.connect();
+  clientPromise = connectWithRetry(uri, options);
 }
 
 // Export a module-scoped MongoClient promise. By doing this in a
