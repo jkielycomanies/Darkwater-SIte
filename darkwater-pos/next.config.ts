@@ -1,18 +1,25 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // STABILITY OPTIMIZATIONS FOR DEVELOPMENT
+  // PERFORMANCE OPTIMIZATIONS
   
-  // Prevent memory leaks and reduce restart frequency
-  onDemandEntries: {
-    maxInactiveAge: 60 * 1000, // Keep pages in memory longer
-    pagesBufferLength: 5, // Buffer more pages
+  // Enable compression
+  compress: true,
+  
+  // Optimize images
+  images: {
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 60,
   },
   
-  // Optimize compilation for stability
+  // Enable static optimization
+  trailingSlash: false,
+  
+  // Optimize compilation
   experimental: {
-    // Reduce file watching to prevent excessive restarts
     optimizePackageImports: ['@heroicons/react'],
+    // Enable modern bundling
+    esmExternals: true,
   },
   
   // Enable TypeScript checking but allow CI to pass
@@ -25,15 +32,21 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   
-  // Optimize for stability - removed webpack config to prevent conflicts with Turbopack
+  // Performance optimizations
+  generateEtags: true,
   
-  // Environment variable handling - removed incorrect env config
-  // Environment variables should be accessed directly via process.env
+  // Enable SWC minification
+  swcMinify: true,
   
-  // Better error pages
-  generateEtags: false,
-  
-  // Disable automatic static optimization to reduce rebuilds
+  // Optimize bundle
+  webpack: (config, { dev, isServer }) => {
+    if (!dev && !isServer) {
+      // Enable tree shaking
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

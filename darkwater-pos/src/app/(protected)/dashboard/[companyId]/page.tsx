@@ -84,124 +84,19 @@ export default function DashboardPage() {
 
   const fetchInventoryCount = async (companyId: string) => {
     try {
-      const response = await fetch(`/api/companies/${companyId}/inventory/bikes?t=${Date.now()}`);
+      const response = await fetch(`/api/companies/${companyId}/dashboard?t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
-        // Count only active bikes (not sold)
-        const activeBikes = data.bikes?.filter((bike: any) => bike.status !== 'Sold') || [];
-        setInventoryCount(activeBikes.length);
-
-        // Compute counts per stage up to Listed
-        const stages = ['Acquisition','Evaluation','Servicing','Media','Listed'];
-        const counts: Record<string, number> = { Acquisition: 0, Evaluation: 0, Servicing: 0, Media: 0, Listed: 0 };
-        for (const b of activeBikes) {
-          const s = String(b.status || '').trim();
-          const normalized = s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-          if (stages.includes(normalized)) counts[normalized] = (counts[normalized] || 0) + 1;
-        }
-        setStatusCounts(counts);
-
-        // Sold this month (by status or dateSold falling in current month)
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        const soldCount = (data.bikes || []).filter((b: any) => {
-          const statusStr = String(b.status || '').toLowerCase();
-          const isSoldStatus = statusStr === 'sold' || statusStr === 'Sold'.toLowerCase();
-          if (b.dateSold) {
-            const d = new Date(b.dateSold);
-            if (!isNaN(d.getTime())) {
-              return d.getFullYear() === y && d.getMonth() === m;
-            }
-          }
-          // fallback: if marked sold and updated this month (best-effort)
-          if (isSoldStatus && b.updatedAt) {
-            const d2 = new Date(b.updatedAt);
-            if (!isNaN(d2.getTime())) return d2.getFullYear() === y && d2.getMonth() === m;
-          }
-          return false;
-        }).length;
-        setSoldThisMonth(soldCount);
-
-        // Build last 6 months revenue/cost/profit - adjust to 2025 where data exists
-        const months: Array<{ label: string; start: Date; end: Date }> = [];
-        const dataYear = 2025; // Use 2025 since that's where the bike data is
-        for (let i = 5; i >= 0; i--) {
-          const d = new Date(dataYear, m - i, 1);
-          const start = new Date(d.getFullYear(), d.getMonth(), 1);
-          const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
-          const label = start.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
-          months.push({ label, start, end });
-        }
+        const dashboardData = data.dashboardData;
         
-        // Date ranges for monthly calculations
-
-        const toNumber = (v: any): number => {
-          if (v === null || v === undefined) return 0;
-          if (typeof v === 'number') return isFinite(v) ? v : 0;
-          if (typeof v === 'string') {
-            const n = Number(v.replace(/[$,]/g, ''));
-            return isFinite(n) ? n : 0;
-          }
-          return 0;
-        };
-
-        const sumNestedCosts = (b: any): number => {
-          const parts = Array.isArray(b.parts) ? b.parts.reduce((s: number, p: any) => s + toNumber(p?.cost), 0) : 0;
-          const services = Array.isArray(b.services) ? b.services.reduce((s: number, p: any) => s + toNumber(p?.cost), 0) : 0;
-          const transport = Array.isArray(b.transportation) ? b.transportation.reduce((s: number, p: any) => s + toNumber(p?.cost), 0) : 0;
-          // Acquisition should come from explicit acquisition fields, not list price/MSRP
-          const acquisition = toNumber(
-            b.acquisitionPrice || b.purchasePrice || b.boughtFor || b.acquiredPrice || b.cost || 0
-          );
-          return parts + services + transport + acquisition;
-        };
-
-        // Calculate monthly revenue data (current month first) - using actualSalePrice
-        const revenueData = months.reverse().map(({ label, start, end }) => {
-          const soldInMonth = (data.bikes || []).filter((b: any) => {
-            const statusStr = String(b.status || '').trim().toLowerCase();
-            if (statusStr !== 'sold' || !b.dateSold) return false;
-            const d = new Date(b.dateSold);
-            return !isNaN(d.getTime()) && d >= start && d <= end;
-          });
-          
-          const amount = soldInMonth.reduce((s: number, b: any) => 
-            s + toNumber(b.actualSalePrice || b.soldPrice || b.salePrice || b.sellingPrice || 0), 0);
-          
-          return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
-        });
-        setMonthlyRevenue(revenueData);
-
-        // Calculate correct profit data for all months
-        const profitData = months.map(({ label, start, end }) => {
-          // Keep September hardcoded as correct
-          if (label.includes('Sep')) {
-            return { label, amount: 7434.71, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
-          }
-          
-          const soldInMonth = (data.bikes || []).filter((b: any) => {
-            const statusStr = String(b.status || '').trim().toLowerCase();
-            if (statusStr !== 'sold' || !b.dateSold) return false;
-            const d = new Date(b.dateSold);
-            return !isNaN(d.getTime()) && d >= start && d <= end;
-          });
-          
-          // Use ONLY the stored actualProfit field - no calculations
-          const amount = soldInMonth.reduce((sum: number, bike: any) => {
-            const storedProfit = toNumber(bike.actualProfit || 0);
-            return sum + storedProfit;
-          }, 0);
-          
-          // Profit calculation completed
-          
-          return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
-        });
-        
-        setMonthlyProfit(profitData);
+        setInventoryCount(dashboardData.inventoryCount);
+        setStatusCounts(dashboardData.statusCounts);
+        setSoldThisMonth(dashboardData.soldThisMonth);
+        setMonthlyRevenue(dashboardData.monthlyRevenue);
+        setMonthlyProfit(dashboardData.monthlyProfit);
       }
     } catch (error) {
-      console.error('Failed to fetch inventory count:', error);
+      console.error('Failed to fetch dashboard data:', error);
     }
   };
 

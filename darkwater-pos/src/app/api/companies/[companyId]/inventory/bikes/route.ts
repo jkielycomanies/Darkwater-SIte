@@ -10,6 +10,9 @@ export async function GET(
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
     const { companyId } = await params;
+    const url = new URL(request.url);
+    const limit = parseInt(url.searchParams.get('limit') || '100');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
 
     // Verify company exists
     const company = await db.collection('companies').findOne({ slug: companyId });
@@ -20,9 +23,14 @@ export async function GET(
       );
     }
 
-    // Get bike inventory for this company from company-specific collection
+    // Get bike inventory for this company from company-specific collection with pagination
     const collectionName = `${company.slug}_bikeInventory`;
-    const bikes = await db.collection(collectionName).find({}).toArray();
+    const bikes = await db.collection(collectionName)
+      .find({})
+      .skip(offset)
+      .limit(limit)
+      .sort({ updatedAt: -1 }) // Most recently updated first
+      .toArray();
 
     // Helper to coerce currency/number-like fields
     const toNumber = (v: any): number => {
@@ -72,10 +80,19 @@ export async function GET(
     
     const stats = { total, available, sold, pending };
 
+    // Get total count for pagination
+    const totalCount = await db.collection(collectionName).countDocuments();
+
     return NextResponse.json({
       success: true,
       bikes,
       stats,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      },
       company: {
         _id: company._id,
         name: company.name,
