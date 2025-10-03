@@ -29,7 +29,7 @@ export async function GET(
       .find({})
       .skip(offset)
       .limit(limit)
-      .sort({ updatedAt: -1 }) // Most recently updated first
+      .sort({ _id: -1 }) // Sort by ID instead of updatedAt to avoid memory issues
       .toArray();
 
     // Helper to coerce currency/number-like fields
