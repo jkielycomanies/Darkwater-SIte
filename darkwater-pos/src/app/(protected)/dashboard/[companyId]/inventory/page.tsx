@@ -103,14 +103,8 @@ function OldInventoryPage() {
     }
   };
 
-  // Sample inventory data
-  const inventoryItems = [
-    { id: 1, name: '2024 Yamaha R1', category: 'Sport', price: '$18,999', status: 'Available', vin: 'JYA1WE010MA000001' },
-    { id: 2, name: '2023 Honda CBR600RR', category: 'Sport', price: '$12,499', status: 'Sold', vin: 'JH2PC4104NM200001' },
-    { id: 3, name: '2024 Kawasaki Ninja H2', category: 'Sport', price: '$29,500', status: 'Reserved', vin: 'JKAZF2J18PA000001' },
-    { id: 4, name: '2023 BMW R1250GS', category: 'Adventure', price: '$18,750', status: 'Available', vin: 'WB10G3100PM000001' },
-    { id: 5, name: '2024 Ducati Panigale V4', category: 'Sport', price: '$24,995', status: 'Available', vin: 'ZDM12AKU6PB000001' },
-  ];
+  // No dummy data - fetch from API only
+  const inventoryItems: any[] = [];
 
   return (
     <div className="dashboard-container">

@@ -112,24 +112,12 @@ export default function BikeInventoryPage() {
           } else {
             console.log('Bikes API failed, using fallback data');
             // Fallback data with real _id format - only active bikes
-            setBikeInventory([
-              { _id: '507f1f77bcf86cd799439011', name: '2024 Yamaha R1', category: 'Sport', price: 18999, status: 'Listed', vin: 'JYA1WE010MA000001', year: 2024, mileage: '0 mi', brand: 'Yamaha', model: 'R1', color: 'Blue' },
-              { _id: '507f1f77bcf86cd799439013', name: '2024 Kawasaki Ninja H2', category: 'Sport', price: 29500, status: 'Media', vin: 'JKAZF2J18PA000001', year: 2024, mileage: '0 mi', brand: 'Kawasaki', model: 'Ninja H2', color: 'Green' },
-              { _id: '507f1f77bcf86cd799439014', name: '2023 BMW R1250GS', category: 'Adventure', price: 18750, status: 'Servicing', vin: 'WB10G3100PM000001', year: 2023, mileage: '2,100 mi', brand: 'BMW', model: 'R1250GS', color: 'White' },
-              { _id: '507f1f77bcf86cd799439015', name: '2024 Ducati Panigale V4', category: 'Sport', price: 24995, status: 'Evaluation', vin: 'ZDM12AKU6PB000001', year: 2024, mileage: '0 mi', brand: 'Ducati', model: 'Panigale V4', color: 'Red' },
-              { _id: '507f1f77bcf86cd799439016', name: '2023 Harley-Davidson Street Glide', category: 'Cruiser', price: 22899, status: 'Acquisition', vin: '1HD1KB413LB000001', year: 2023, mileage: '850 mi', brand: 'Harley-Davidson', model: 'Street Glide', color: 'Black' },
-            ]);
+            setBikeInventory([]);
           }
         } catch (bikeError) {
           console.error('Bike API error, using fallback:', bikeError);
           // Same fallback data - only active bikes
-          setBikeInventory([
-            { _id: '507f1f77bcf86cd799439011', name: '2024 Yamaha R1', category: 'Sport', price: 18999, status: 'Listed', vin: 'JYA1WE010MA000001', year: 2024, mileage: '0 mi', brand: 'Yamaha', model: 'R1', color: 'Blue' },
-            { _id: '507f1f77bcf86cd799439013', name: '2024 Kawasaki Ninja H2', category: 'Sport', price: 29500, status: 'Media', vin: 'JKAZF2J18PA000001', year: 2024, mileage: '0 mi', brand: 'Kawasaki', model: 'Ninja H2', color: 'Green' },
-            { _id: '507f1f77bcf86cd799439014', name: '2023 BMW R1250GS', category: 'Adventure', price: 18750, status: 'Servicing', vin: 'WB10G3100PM000001', year: 2023, mileage: '2,100 mi', brand: 'BMW', model: 'R1250GS', color: 'White' },
-            { _id: '507f1f77bcf86cd799439015', name: '2024 Ducati Panigale V4', category: 'Sport', price: 24995, status: 'Evaluation', vin: 'ZDM12AKU6PB000001', year: 2024, mileage: '0 mi', brand: 'Ducati', model: 'Panigale V2', color: 'Red' },
-            { _id: '507f1f77bcf86cd799439016', name: '2023 Harley-Davidson Street Glide', category: 'Cruiser', price: 22899, status: 'Acquisition', vin: '1HD1KB413LB000001', year: 2023, mileage: '850 mi', brand: 'Harley-Davidson', model: 'Street Glide', color: 'Black' },
-          ]);
+          setBikeInventory([]);
         }
       } else if (companyResponse.status === 404) {
         console.log('Company not found, redirecting to select page');

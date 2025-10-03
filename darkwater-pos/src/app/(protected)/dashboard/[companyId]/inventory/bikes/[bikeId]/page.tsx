@@ -347,25 +347,8 @@ export default function BikeDetailsPage() {
 
 
         } else {
-          // Fallback: Create a bike based on the ID
-          const fallbackBikes = [
-            { _id: '507f1f77bcf86cd799439011', name: '2024 Yamaha R1', category: 'Sport', price: 18999, status: 'Listed', vin: 'JYA1WE010MA000001', year: 2024, mileage: '0 mi', brand: 'Yamaha', model: 'R1', color: 'Blue', description: 'Brand new 2024 Yamaha R1 in pristine condition', images: [], createdAt: '2024-01-15T10:00:00Z', updatedAt: '2024-01-15T10:00:00Z' },
-            { _id: '507f1f77bcf86cd799439012', name: '2023 Honda CBR600RR', category: 'Sport', price: 12499, status: 'Sold', vin: 'JH2PC4104NM200001', year: 2023, mileage: '1,250 mi', brand: 'Honda', model: 'CBR600RR', color: 'Red', description: '2023 Honda CBR600RR with low mileage', images: [], createdAt: '2024-01-10T10:00:00Z', updatedAt: '2024-01-20T10:00:00Z' },
-            { _id: '507f1f77bcf86cd799439013', name: '2024 Kawasaki Ninja H2', category: 'Sport', price: 29500, status: 'Media', vin: 'JKAZF2J18PA000001', year: 2024, mileage: '0 mi', brand: 'Kawasaki', model: 'Ninja H2', color: 'Green', description: 'High-performance supercharged motorcycle', images: [], createdAt: '2024-01-12T10:00:00Z', updatedAt: '2024-01-18T10:00:00Z' },
-            { _id: '507f1f77bcf86cd799439013', name: '2023 BMW R1250GS', category: 'Adventure', price: 18750, status: 'Servicing', vin: 'WB10G3100PM000001', year: 2023, mileage: '2,100 mi', brand: 'BMW', model: 'R1250GS', color: 'White', description: 'Adventure touring bike with premium features', images: [], createdAt: '2024-01-08T10:00:00Z', updatedAt: '2024-01-16T10:00:00Z' },
-            { _id: '507f1f77bcf86cd799439015', name: '2024 Ducati Panigale V4', category: 'Sport', price: 24995, status: 'Evaluation', vin: 'ZDM12AKU6PB000001', year: 2024, mileage: '0 mi', brand: 'Ducati', model: 'Panigale V4', color: 'Red', description: 'Italian superbike with cutting-edge technology', images: [], createdAt: '2024-01-14T10:00:00Z', updatedAt: '2024-01-14T10:00:00Z' },
-            { _id: '507f1f77bcf86cd799439016', name: '2023 Harley-Davidson Street Glide', category: 'Cruiser', price: 22899, status: 'Acquisition', vin: '1HD1KB413LB000001', year: 2023, mileage: '850 mi', brand: 'Harley-Davidson', model: 'Street Glide', color: 'Black', description: 'Classic American cruiser with touring capabilities', images: [], createdAt: '2024-01-06T10:00:00Z', updatedAt: '2024-01-16T10:00:00Z' },
-          ];
-          const foundBike = fallbackBikes.find(bike => bike._id === bikeId);
-          if (foundBike) {
-            setBike(foundBike as BikeDetails);
-            // Initialize bike images from fallback data
-            if (foundBike.images && foundBike.images.length > 0) {
-              setBikeImages(foundBike.images);
-            }
-          } else {
-            router.push(`/dashboard/${companyId}/inventory/bikes`);
-          }
+          // No fallback dummy data - redirect if bike not found
+          router.push(`/dashboard/${companyId}/inventory/bikes`);
         }
       } catch (bikeError) {
         console.error('Bike details API error:', bikeError);
