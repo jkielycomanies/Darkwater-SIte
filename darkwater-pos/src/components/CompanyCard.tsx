@@ -105,3 +105,4 @@ export default function CompanyCard({ company, onClick }: CompanyCardProps) {
 
 
 
+

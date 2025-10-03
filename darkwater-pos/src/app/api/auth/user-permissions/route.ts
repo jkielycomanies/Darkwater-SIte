@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('User permissions for', session.user.email, ':', user.permissions);
+    // User permissions retrieved
 
     return NextResponse.json({ 
       success: true, 
@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
 
 
 

@@ -10,10 +10,7 @@ export async function POST(
     const { companyId, bikeId } = await params;
     const evaluationData = await request.json();
 
-    console.log('=== SAVING EVALUATION ===');
-    console.log('Company:', companyId);
-    console.log('Bike ID:', bikeId);
-    console.log('Data:', evaluationData);
+    // Saving evaluation data
 
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
@@ -21,7 +18,6 @@ export async function POST(
     // Verify company exists
     const company = await db.collection('companies').findOne({ slug: companyId });
     if (!company) {
-      console.log('Company not found:', companyId);
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
@@ -30,19 +26,15 @@ export async function POST(
 
     // Get the collection name
     const collectionName = `${company.slug}_bikeInventory`;
-    console.log('Using collection:', collectionName);
 
     // Verify bike exists
     const existingBike = await db.collection(collectionName).findOne({ _id: new ObjectId(bikeId) });
     if (!existingBike) {
-      console.log('Bike not found:', bikeId);
       return NextResponse.json(
         { success: false, error: 'Bike not found' },
         { status: 404 }
       );
     }
-
-    console.log('Bike found:', existingBike.name || existingBike.make + ' ' + existingBike.model);
 
     // Prepare the evaluation data to save
     const updateData = {
@@ -53,7 +45,7 @@ export async function POST(
       updatedAt: new Date()
     };
 
-    console.log('Saving evaluation data:', updateData);
+    // Saving evaluation data
 
     // Update the bike document with evaluation data
     const result = await db.collection(collectionName).updateOne(
@@ -61,7 +53,7 @@ export async function POST(
       { $set: updateData }
     );
 
-    console.log('Update result:', result);
+    // Update completed
 
     if (result.matchedCount === 0) {
       return NextResponse.json(
@@ -70,7 +62,7 @@ export async function POST(
       );
     }
 
-    console.log('✅ Evaluation saved successfully!');
+    // Evaluation saved successfully
     return NextResponse.json({
       success: true,
       message: 'Evaluation saved successfully',

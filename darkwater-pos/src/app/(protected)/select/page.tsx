@@ -73,7 +73,6 @@ export default function CompanySelectPage() {
         const permissionsData = await permissionsResponse.json();
         setUserPermissions(permissionsData);
         userCompanyAccess = permissionsData.companyAccess || [];
-        console.log('User company access:', userCompanyAccess);
       }
 
       // Fetch all companies
@@ -86,7 +85,6 @@ export default function CompanySelectPage() {
           userCompanyAccess.includes(company.slug)
         );
         
-        console.log('Filtered companies for user:', filteredCompanies);
         setCompanies(filteredCompanies);
       }
     } catch (error) {

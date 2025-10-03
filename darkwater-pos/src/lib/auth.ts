@@ -38,27 +38,19 @@ export const authOptions: NextAuthOptions = {
           }
           
           if (!user) {
-            console.log('User not found:', credentials.email);
-            console.log('Available users in database:', await db.collection('users').find({}, { projection: { email: 1, name: 1 } }).toArray());
             return null;
           }
 
-          console.log('Found user:', { email: user.email, hasPasswordHash: !!user.passwordHash });
-
           // Verify password
           if (!user.passwordHash) {
-            console.log('User has no password hash:', credentials.email);
             return null;
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash);
           
           if (!isPasswordValid) {
-            console.log('Invalid password for:', credentials.email);
             return null;
           }
-
-          console.log('✅ Login successful for:', user.email);
           
           // Update lastLogin timestamp
           try {
@@ -71,7 +63,6 @@ export const authOptions: NextAuthOptions = {
                 } 
               }
             );
-            console.log('✅ Updated lastLogin for:', user.email);
           } catch (updateError) {
             console.error('Failed to update lastLogin:', updateError);
             // Don't fail the login if we can't update the timestamp

@@ -134,11 +134,7 @@ export default function DashboardPage() {
           months.push({ label, start, end });
         }
         
-        console.log('Date ranges being used:', months.map(m => ({
-          label: m.label,
-          start: m.start.toISOString(),
-          end: m.end.toISOString()
-        })));
+        // Date ranges for monthly calculations
 
         const toNumber = (v: any): number => {
           if (v === null || v === undefined) return 0;
@@ -194,70 +190,15 @@ export default function DashboardPage() {
           // Use ONLY the stored actualProfit field - no calculations
           const amount = soldInMonth.reduce((sum: number, bike: any) => {
             const storedProfit = toNumber(bike.actualProfit || 0);
-            console.log(`${label} - ${bike.make} ${bike.model}: actualProfit = ${bike.actualProfit}, converted = ${storedProfit}`);
             return sum + storedProfit;
           }, 0);
           
-          console.log(`${label} FINAL PROFIT SUM: ${amount}`);
-          
-          // Detailed logging for August to see individual bike profits
-          if (label.includes('Aug')) {
-            console.log(`${label} Individual Bike Profits (using stored actualProfit):`, soldInMonth.map(bike => {
-              const storedProfit = toNumber(bike.actualProfit || 0);
-              const salePrice = toNumber(bike.actualSalePrice || bike.soldPrice || bike.salePrice || bike.sellingPrice || 0);
-              
-              return {
-                make: bike.make,
-                model: bike.model,
-                dateSold: bike.dateSold,
-                salePrice: salePrice,
-                storedActualProfit: storedProfit
-              };
-            }));
-          }
-          
-          console.log(`${label} Profit Calculation:`, {
-            soldBikesCount: soldInMonth.length,
-            totalProfit: amount,
-            dateRange: `${start.toISOString()} to ${end.toISOString()}`
-          });
+          // Profit calculation completed
           
           return { label, amount, month: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}` };
         });
         
-        console.log('Calculated profit data:', profitData);
         setMonthlyProfit(profitData);
-        console.log('Monthly Profit Data Set:', profitData);
-        
-        // API call to get August 2025 bikes and their actualProfit values
-        console.log('=== AUGUST 2025 BIKES ACTUAL PROFIT DATA ===');
-        const augustBikes = (data.bikes || []).filter((bike: any) => {
-          const statusStr = String(bike.status || '').trim().toLowerCase();
-          if (statusStr !== 'sold' || !bike.dateSold) return false;
-          const d = new Date(bike.dateSold);
-          if (isNaN(d.getTime())) return false;
-          
-          // Check if bike was sold in August 2025
-          const year = d.getFullYear();
-          const month = d.getMonth(); // 0-based, so August = 7
-          return year === 2025 && month === 7;
-        });
-        
-        console.log('August 2025 Sold Bikes:', augustBikes.map(bike => ({
-          make: bike.make,
-          model: bike.model,
-          year: bike.year,
-          dateSold: bike.dateSold,
-          actualSalePrice: bike.actualSalePrice,
-          actualProfit: bike.actualProfit,
-          vin: bike.vin
-        })));
-        
-        const totalAugustProfit = augustBikes.reduce((sum: number, bike: any) => {
-          return sum + toNumber(bike.actualProfit || 0);
-        }, 0);
-        
-        console.log('Total August 2025 Profit from actualProfit fields:', totalAugustProfit);
       }
     } catch (error) {
       console.error('Failed to fetch inventory count:', error);
@@ -477,7 +418,10 @@ export default function DashboardPage() {
               <div 
                 key={index} 
                 className="action-card"
-                onClick={() => console.log(`Action: ${action.action}`)}
+                onClick={() => {
+                  // Handle action based on action.action
+                  // TODO: Implement proper action handling
+                }}
               >
                 <action.icon className="action-icon" />
                 <h3 className="action-title">{action.title}</h3>

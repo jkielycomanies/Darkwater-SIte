@@ -63,32 +63,25 @@ export async function POST(
     const { companyId, bikeId } = await params;
     body = await request.json();
 
-    console.log('=== SERVICE CREATION DEBUG ===');
-    console.log('CompanyId:', companyId);
-    console.log('BikeId:', bikeId);
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    // Creating service for bike
 
     // Verify company exists
     const company = await db.collection('companies').findOne({ slug: companyId });
     if (!company) {
-      console.log('Company not found:', companyId);
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
       );
     }
-    console.log('Company found:', company.name);
 
     // Verify bike exists
     const bike = await db.collection(`${company.slug}_bikeInventory`).findOne({ _id: new ObjectId(bikeId) });
     if (!bike) {
-      console.log('Bike not found:', bikeId);
       return NextResponse.json(
         { success: false, error: 'Bike not found' },
         { status: 404 }
       );
     }
-    console.log('Bike found:', bike.name || `${bike.make} ${bike.model}`);
 
     // Basic validation
     if (!body.title || !body.serviceLocation || !body.type) {
@@ -117,13 +110,13 @@ export async function POST(
       updatedAt: new Date()
     };
 
-    console.log('Service data to save:', JSON.stringify(serviceData, null, 2));
+    // Service data prepared
 
     // Create service in company-specific collection (e.g., "revani_service")
     const result = await db.collection(`${company.slug}_service`).insertOne(serviceData);
     const newService = { ...serviceData, _id: result.insertedId };
 
-    console.log('Service created successfully:', newService._id);
+    // Service created successfully
 
     return NextResponse.json({
       success: true,
@@ -164,32 +157,25 @@ export async function DELETE(
       );
     }
 
-    console.log('=== SERVICE DELETION DEBUG ===');
-    console.log('CompanyId:', companyId);
-    console.log('BikeId:', bikeId);
-    console.log('ServiceId:', serviceId);
+    // Deleting service
 
     // Verify company exists
     const company = await db.collection('companies').findOne({ slug: companyId });
     if (!company) {
-      console.log('Company not found:', companyId);
       return NextResponse.json(
         { success: false, error: 'Company not found' },
         { status: 404 }
       );
     }
-    console.log('Company found:', company.name);
 
     // Verify bike exists
     const bike = await db.collection(`${company.slug}_bikeInventory`).findOne({ _id: new ObjectId(bikeId) });
     if (!bike) {
-      console.log('Bike not found:', bikeId);
       return NextResponse.json(
         { success: false, error: 'Bike not found' },
         { status: 400 }
       );
     }
-    console.log('Bike found:', bike.name || `${bike.make} ${bike.model}`);
 
     // Delete the service from the company-specific collection
     const collectionName = `${company.slug}_service`;
@@ -199,14 +185,13 @@ export async function DELETE(
     });
 
     if (result.deletedCount === 0) {
-      console.log('Service not found or already deleted:', serviceId);
       return NextResponse.json(
         { success: false, error: 'Service not found or already deleted' },
         { status: 404 }
       );
     }
 
-    console.log('Service deleted successfully:', serviceId);
+    // Service deleted successfully
 
     return NextResponse.json({
       success: true,
