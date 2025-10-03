@@ -28,10 +28,6 @@ const options = {
   
   // Heartbeat settings
   heartbeatFrequencyMS: 10000,
-  
-  // Buffer settings
-  bufferMaxEntries: 0,
-  bufferCommands: false,
 };
 
 let client: MongoClient;
