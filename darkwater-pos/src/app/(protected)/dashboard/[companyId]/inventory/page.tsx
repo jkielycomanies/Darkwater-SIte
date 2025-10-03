@@ -103,8 +103,64 @@ function OldInventoryPage() {
     }
   };
 
-  // No dummy data - fetch from API only
-  const inventoryItems: any[] = [];
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (status === 'unauthenticated') { router.push('/login'); return; }
+    if (!params?.companyId) return;
+
+    const companyId = params.companyId as string;
+    fetchInventoryData(companyId);
+  }, [status, router, params]);
+
+  const fetchInventoryData = async (companyId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Fetch bikes
+      const bikesResponse = await fetch(`/api/companies/${companyId}/inventory/bikes`);
+      let bikes: any[] = [];
+      
+      if (bikesResponse.ok) {
+        const bikesData = await bikesResponse.json();
+        bikes = bikesData.bikes || [];
+      }
+      
+      // Fetch parts
+      const partsResponse = await fetch(`/api/companies/${companyId}/inventory/parts`);
+      let parts: any[] = [];
+      
+      if (partsResponse.ok) {
+        const partsData = await partsResponse.json();
+        parts = partsData.parts || [];
+      }
+      
+      // Fetch accessories
+      const accessoriesResponse = await fetch(`/api/companies/${companyId}/inventory/accessories`);
+      let accessories: any[] = [];
+      
+      if (accessoriesResponse.ok) {
+        const accessoriesData = await accessoriesResponse.json();
+        accessories = accessoriesData.accessories || [];
+      }
+      
+      // Combine all inventory items
+      const allItems = [
+        ...bikes.map(bike => ({ ...bike, type: 'bike' })),
+        ...parts.map(part => ({ ...part, type: 'part' })),
+        ...accessories.map(accessory => ({ ...accessory, type: 'accessory' }))
+      ];
+      
+      setInventoryItems(allItems);
+    } catch (error) {
+      console.error('Failed to fetch inventory data:', error);
+      setInventoryItems([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="dashboard-container">
@@ -277,7 +333,20 @@ function OldInventoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {inventoryItems.map((item) => (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#cbd5e1' }}>
+                      Loading inventory data...
+                    </td>
+                  </tr>
+                ) : inventoryItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#cbd5e1' }}>
+                      No inventory items found
+                    </td>
+                  </tr>
+                ) : (
+                  inventoryItems.map((item) => (
                   <tr key={item.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                     <td style={{ padding: '1rem', color: 'white', fontWeight: '500' }}>{item.name}</td>
                     <td style={{ padding: '1rem', color: '#cbd5e1' }}>{item.category}</td>
@@ -300,7 +369,8 @@ function OldInventoryPage() {
                     </td>
                     <td style={{ padding: '1rem', color: '#94a3b8', fontFamily: 'monospace', fontSize: '0.875rem' }}>{item.vin}</td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
