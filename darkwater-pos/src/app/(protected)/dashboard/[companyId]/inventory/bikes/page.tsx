@@ -106,17 +106,28 @@ export default function BikeInventoryPage() {
           const bikesResponse = await fetch(`/api/companies/${companyId}/inventory/bikes`);
           if (bikesResponse.ok) {
             const bikesData = await bikesResponse.json();
+            console.log('🚀 Bikes API Response:', {
+              success: bikesData.success,
+              bikesCount: bikesData.bikes ? bikesData.bikes.length : 0,
+              pagination: bikesData.pagination
+            });
+            
             // Filter out sold bikes - only show active inventory
             const activeBikes = bikesData.bikes.filter((bike: BikeInventory) => bike.status !== 'Sold');
+            console.log('✅ Active bikes after filtering:', activeBikes.length);
+            console.log('📋 Active bikes:', activeBikes.map(bike => ({
+              name: bike.name || `${bike.make} ${bike.model}`,
+              status: bike.status,
+              year: bike.year
+            })));
+            
             setBikeInventory(activeBikes);
           } else {
-            console.log('Bikes API failed, using fallback data');
-            // Fallback data with real _id format - only active bikes
+            console.log('❌ Bikes API failed:', bikesResponse.status, bikesResponse.statusText);
             setBikeInventory([]);
           }
         } catch (bikeError) {
-          console.error('Bike API error, using fallback:', bikeError);
-          // Same fallback data - only active bikes
+          console.error('❌ Bike API error:', bikeError);
           setBikeInventory([]);
         }
       } else if (companyResponse.status === 404) {
@@ -396,6 +407,14 @@ export default function BikeInventoryPage() {
   // Calculate active bikes (excluding sold bikes)
   const activeBikes = bikeInventory.filter(bike => bike.status !== 'Sold');
   const activeBikeCount = activeBikes.length;
+  
+  // Debug logging
+  console.log('🔍 Bike Inventory State:', {
+    totalBikes: bikeInventory.length,
+    activeBikeCount,
+    filteredBikesCount: filteredBikes.length,
+    searchFilters
+  });
 
   const getCompanyBadge = (type: string) => {
     switch (type) {
@@ -730,9 +749,11 @@ export default function BikeInventoryPage() {
               color: '#64748b',
               fontSize: '1rem'
             }}>
-              {activeBikeCount === 0 
-                ? 'No bikes in inventory yet. Add your first bike!' 
-                : 'No bikes match your search criteria. Try adjusting the filters.'}
+          {filteredBikes.length === 0 
+            ? (activeBikeCount === 0 
+              ? 'No bikes in inventory yet. Add your first bike!' 
+              : 'No bikes match your search criteria. Try adjusting the filters.')
+            : ''}
             </div>
           ) : (
             filteredBikes.map((bike) => (
