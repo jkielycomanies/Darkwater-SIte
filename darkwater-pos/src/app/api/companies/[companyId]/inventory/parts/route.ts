@@ -3,7 +3,7 @@ import clientPromise from '@/lib/mongodb';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
     const client = await clientPromise;

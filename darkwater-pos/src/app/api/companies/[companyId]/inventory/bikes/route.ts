@@ -4,12 +4,12 @@ import { ObjectId } from 'mongodb';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
-    const { companyId } = await params;
+    const { companyId } = params;
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get('limit') || '100');
     const offset = parseInt(url.searchParams.get('offset') || '0');
@@ -111,12 +111,12 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
-    const { companyId } = await params;
+    const { companyId } = params;
     const body = await request.json();
 
     // Verify company exists

@@ -6,7 +6,7 @@ import clientPromise from '@/lib/mongodb';
 // GET - Fetch optimized dashboard data with server-side calculations
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function GET(
 
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
-    const { companyId } = await params;
+    const { companyId } = params;
 
     // Verify company exists
     const company = await db.collection('companies').findOne({ slug: companyId });

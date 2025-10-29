@@ -4,10 +4,10 @@ import { AccessoriesInventoryModel } from '@/lib/models/AccessoriesInventory';
 
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
-    const { companyId } = await params;
+    const { companyId } = params;
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
 
@@ -54,10 +54,10 @@ export async function GET(
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
-    const { companyId } = await params;
+    const { companyId } = params;
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
 
@@ -124,10 +124,10 @@ export async function POST(
 
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ companyId: string }> }
+  { params }: { params: { companyId: string } }
 ) {
   try {
-    const { companyId } = await params;
+    const { companyId } = params;
     const client = await clientPromise;
     const db = client.db('darkwater-pos');
 
